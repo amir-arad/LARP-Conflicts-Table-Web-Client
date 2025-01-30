@@ -19,6 +19,10 @@ export default defineConfig(({ mode }) => {
       ),
     },
     plugins: [react()],
+    test: {
+      environment: "jsdom",
+      globals: true,
+    },
     build: {
       sourcemap: true,
     },

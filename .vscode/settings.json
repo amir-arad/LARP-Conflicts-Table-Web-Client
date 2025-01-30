@@ -1,4 +1,7 @@
 {
   "vite.port": 5173,
-  "vite.autoStart": false
+  "vite.autoStart": false,
+  "javascript.preferences.importModuleSpecifier": "relative",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "testing.automaticallyOpenPeekView": "never"
 }
