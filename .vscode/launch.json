@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against internal vite",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      // "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${webRoot}/*",
+        "/@vite/*": "${webRoot}/node_modules/vite/*",
+        "/src/*": "${webRoot}/src/*",
+        "/@/*": "${webRoot}/src/*"
+      }
+    }
+  ]
+}
