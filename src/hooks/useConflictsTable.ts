@@ -1,33 +1,98 @@
-import { DependencyList, useCallback, useState } from "react";
+import { DependencyList, useCallback, useEffect, useState } from "react";
 
-interface UseConflictsTableProps {
+import { ArgumentsType } from "vitest";
+import { ReadonlyDeep } from "type-fest";
+
+export interface UseConflictsTableProps {
   sheetId: string;
   token: string;
+  gapi: typeof gapi;
 }
-const useCallbackVoid = (callback: Function, deps: DependencyList) => {
-  return useCallback((...args: unknown[]) => void callback(...args), deps);
+export type CellId = string;
+interface CellNode {
+  type: "role" | "conflict" | "motivation";
+  value: string;
+  rowIndex: number;
+  colIndex: number;
+  cellRef: CellId;
+}
+type RoleData = CellNode & {
+  type: "role";
+  motivations: Motivations;
 };
-export function useConflictsTable({ token, sheetId }: UseConflictsTableProps) {
-  const [conflicts, setConflicts] = useState<string[]>([]);
-  const [roles, setRoles] = useState<string[]>([]);
-  const [motivations, setMotivations] = useState<Record<string, string>>({});
+type ConflictData = CellNode & {
+  type: "conflict";
+  motivations: Motivations;
+};
+type MotivationData = CellNode & {
+  type: "motivation";
+  role: CellId;
+  conflict: CellId;
+};
+type Motivations = Record<CellId, MotivationData>;
+
+const useCallbackVoid = <T extends Function>(
+  callback: T,
+  deps: DependencyList
+) => {
+  return useCallback(
+    (...args: ArgumentsType<T>) => void callback(...args),
+    deps
+  );
+};
+
+const getCellRef = (rowIndex: number, colIndex: number): string => {
+  return `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`;
+};
+const getCellRange = (...cells: CellNode[]): string => {
+  const colIndexes = new Set(cells.map((cell) => cell.colIndex));
+  const rowIndexes = new Set(cells.map((cell) => cell.rowIndex));
+  const minColIndex = Math.min(...colIndexes);
+  const maxColIndex = Math.max(...colIndexes);
+  const minRowIndex = Math.min(...rowIndexes);
+  const maxRowIndex = Math.max(...rowIndexes);
+  return `Sheet1!${getCellRef(minRowIndex, minColIndex)}:${getCellRef(
+    maxRowIndex,
+    maxColIndex
+  )}`;
+};
+
+export type ConflictsTable = ReturnType<typeof useConflictsTable>;
+export function useConflictsTable({
+  token,
+  sheetId,
+  gapi,
+}: UseConflictsTableProps) {
+  const [conflicts, setConflicts] = useState<ReadonlyDeep<ConflictData[]>>([]);
+  const [roles, setRoles] = useState<ReadonlyDeep<RoleData[]>>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  function reportError(message: null): void;
+  function reportError(message: string, error: Error): void;
+  function reportError(message: string | null, error?: Error | null): void {
+    if (message && error) {
+      console.error(message, error);
+      message = message + ": " + error.message;
+    }
+    setError(message);
+  }
   const optinos = {
     oauth_token: token,
     spreadsheetId: sheetId,
   };
+
   const loadData = useCallbackVoid(async () => {
     try {
       setIsLoading(true);
-      if (!window.gapi.client.sheets) {
-        await window.gapi.client.load("sheets", "v4");
-        if (!window.gapi.client.sheets) {
+      if (!gapi.client.sheets) {
+        await gapi.client.load("sheets", "v4");
+        if (!gapi.client.sheets) {
           throw new Error("Google Sheets API not loaded");
         }
       }
 
-      const response = await window.gapi.client.sheets.spreadsheets.values.get({
+      const response = await gapi.client.sheets.spreadsheets.values.get({
         ...optinos,
         range: "Sheet1!A1:Z1000",
       });
@@ -37,17 +102,46 @@ export function useConflictsTable({ token, sheetId }: UseConflictsTableProps) {
         throw new Error("No data found in sheet");
       }
 
-      const sheetRoles = values[0].slice(1);
-      const sheetConflicts: string[] = [];
-      const sheetMotivations: Record<string, string> = {};
+      const sheetRoles: RoleData[] = values[0]
+        .slice(1)
+        .map((value: string, index: number) => ({
+          type: "role",
+          value,
+          rowIndex: 0,
+          colIndex: index + 1,
+          cellRef: getCellRef(0, index + 1),
+          motivations: {},
+        }));
+
+      const sheetConflicts: ConflictData[] = [];
 
       for (let i = 1; i < values.length; i++) {
         const row = values[i];
         if (row[0]) {
-          sheetConflicts.push(row[0]);
+          const conflictMotivations: Motivations = {};
+          const conflictCell: ConflictData = {
+            type: "conflict",
+            value: row[0],
+            rowIndex: i,
+            colIndex: 0,
+            cellRef: getCellRef(i, 0),
+            motivations: conflictMotivations,
+          };
+          sheetConflicts.push(conflictCell);
           for (let j = 1; j < row.length; j++) {
-            if (row[j]) {
-              sheetMotivations[`${row[0]}-${sheetRoles[j - 1]}`] = row[j];
+            const role = sheetRoles[j - 1];
+            if (row[j]?.trim()) {
+              const motivation: MotivationData = {
+                type: "motivation",
+                value: row[j],
+                rowIndex: i,
+                colIndex: j,
+                cellRef: getCellRef(i, j),
+                role: sheetRoles[j - 1].cellRef,
+                conflict: conflictCell.cellRef,
+              };
+              conflictMotivations[motivation.role] = motivation;
+              role.motivations[motivation.conflict] = motivation;
             }
           }
         }
@@ -55,11 +149,9 @@ export function useConflictsTable({ token, sheetId }: UseConflictsTableProps) {
 
       setRoles(sheetRoles);
       setConflicts(sheetConflicts);
-      setMotivations(sheetMotivations);
-      setError(null);
+      reportError(null);
     } catch (error) {
-      console.error("Error loading sheet data:", error);
-      setError("Failed to load data from Google Sheet");
+      reportError("Failed to load data from Google Sheet", error as Error);
     } finally {
       setIsLoading(false);
     }
@@ -68,228 +160,278 @@ export function useConflictsTable({ token, sheetId }: UseConflictsTableProps) {
   const updateFullSheet = useCallbackVoid(async () => {
     try {
       const values = [
-        ["Conflicts / Roles", ...roles],
+        ["Conflicts / Roles", ...roles.map((r) => r.value)],
         ...conflicts.map((conflict) => [
-          conflict,
-          ...roles.map((role) => motivations[`${conflict}-${role}`] || ""),
+          conflict.value,
+          ...roles.map(
+            (role) => conflict.motivations[role.cellRef]?.value || ""
+          ),
         ]),
       ];
 
-      await window.gapi.client.sheets.spreadsheets.values.update({
+      await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
         range: "Sheet1!A1:Z1000",
         valueInputOption: "RAW",
         resource: { values },
       });
 
-      setError(null);
+      reportError(null);
     } catch (error) {
-      console.error("Error updating sheet:", error);
-      setError("Failed to update sheet");
-      throw error;
+      reportError("Failed to update sheet", error as Error);
     }
-  }, [sheetId, conflicts, roles, motivations]);
+  }, [sheetId, conflicts, roles]);
 
   const addConflict = useCallbackVoid(
     async (newConflict: string) => {
       try {
-        const values = [[newConflict, ...roles.map(() => "")]];
-        const range = `Sheet1!A${conflicts.length + 2}`;
+        const cellRef = getCellRef(conflicts.length + 1, 0);
 
-        await window.gapi.client.sheets.spreadsheets.values.update({
+        const newConflictCell: ConflictData = {
+          type: "conflict",
+          value: newConflict,
+          rowIndex: conflicts.length + 1,
+          colIndex: 0,
+          cellRef,
+          motivations: {},
+        };
+
+        setConflicts((prev) => [...prev, newConflictCell]);
+
+        await gapi.client.sheets.spreadsheets.values.update({
           ...optinos,
-          range,
+          range: `Sheet1!${cellRef}:${getCellRef(
+            conflicts.length + 1,
+            roles.length
+          )}`,
           valueInputOption: "RAW",
-          resource: { values },
+          resource: { values: [[newConflict, ...roles.map(() => "")]] },
         });
-
-        setConflicts((prev) => [...prev, newConflict]);
-        setError(null);
+        reportError(null);
       } catch (error) {
-        console.error("Error adding conflict:", error);
-        setError("Failed to add conflict");
-        throw error;
+        reportError("Failed to add conflict", error as Error);
       }
     },
-    [sheetId, conflicts.length, roles]
+    [conflicts.length, roles]
   );
 
   const addRole = useCallbackVoid(
     async (newRole: string) => {
       try {
-        const values = [[newRole], ...conflicts.map(() => [""])];
-        const range = `Sheet1!${String.fromCharCode(65 + roles.length)}1`;
+        const cellRef = getCellRef(0, roles.length + 1);
 
-        await window.gapi.client.sheets.spreadsheets.values.update({
+        const newRoleCell: RoleData = {
+          type: "role",
+          value: newRole,
+          rowIndex: 0,
+          colIndex: roles.length + 1,
+          cellRef,
+          motivations: {},
+        };
+
+        setRoles((prev) => [...prev, newRoleCell]);
+
+        await gapi.client.sheets.spreadsheets.values.update({
           ...optinos,
-          range,
+          range: `Sheet1!${cellRef}:${getCellRef(
+            conflicts.length,
+            roles.length + 1
+          )}`,
           valueInputOption: "RAW",
-          resource: { values },
+          resource: { values: [[newRole], ...conflicts.map(() => [""])] },
         });
-
-        setRoles((prev) => [...prev, newRole]);
-        setError(null);
+        reportError(null);
       } catch (error) {
-        console.error("Error adding role:", error);
-        setError("Failed to add role");
-        throw error;
+        reportError("Failed to add role", error as Error);
       }
     },
-    [sheetId, conflicts, roles.length]
+    [conflicts.length, roles.length]
   );
 
   const removeConflict = useCallbackVoid(
-    async (index: number) => {
+    async (cellRef: CellId) => {
       try {
-        const newConflicts = conflicts.filter((_, i) => i !== index);
-        const newMotivations = { ...motivations };
-
-        Object.keys(newMotivations).forEach((key) => {
-          const [conflict] = key.split("-");
-          if (conflicts[index] === conflict) {
-            delete newMotivations[key];
+        const conflict = conflicts.find((c) => c.cellRef === cellRef);
+        if (!conflict) {
+          throw new Error("Invalid conflict cell ref");
+        }
+        setConflicts((prev) => {
+          const index = prev.indexOf(conflict);
+          switch (index) {
+            case -1:
+              return prev;
+            case prev.length - 1:
+              return prev.slice(0, index);
+            default:
+              return [
+                ...prev.slice(0, index),
+                { ...conflict, value: "", motivations: {} },
+                ...prev.slice(index + 1),
+              ];
           }
         });
 
-        setConflicts(newConflicts);
-        setMotivations(newMotivations);
-        await updateFullSheet();
+        await gapi.client.sheets.spreadsheets.values.clear({
+          ...optinos,
+          range: getCellRange(conflict, ...Object.values(conflict.motivations)),
+          resource: {},
+        });
+        reportError(null);
       } catch (error) {
-        console.error("Error removing conflict:", error);
-        setError("Failed to remove conflict");
-        throw error;
+        reportError("Failed to remove conflict", error as Error);
       }
     },
-    [conflicts, motivations, updateFullSheet]
+    [conflicts, roles]
   );
 
   const removeRole = useCallbackVoid(
-    async (index: number) => {
+    async (cellRef: CellId) => {
       try {
-        const newRoles = roles.filter((_, i) => i !== index);
-        const newMotivations = { ...motivations };
-
-        Object.keys(newMotivations).forEach((key) => {
-          const [_, role] = key.split("-");
-          if (roles[index] === role) {
-            delete newMotivations[key];
+        const role = roles.find((r) => r.cellRef === cellRef);
+        if (!role) {
+          throw new Error("Invalid role cell ref");
+        }
+        setRoles((prev) => {
+          const index = prev.indexOf(role);
+          switch (index) {
+            case -1:
+              return prev;
+            case prev.length - 1:
+              return prev.slice(0, index);
+            default:
+              return [
+                ...prev.slice(0, index),
+                { ...role, value: "", motivations: {} },
+                ...prev.slice(index + 1),
+              ];
           }
         });
-
-        setRoles(newRoles);
-        setMotivations(newMotivations);
-        await updateFullSheet();
+        await gapi.client.sheets.spreadsheets.values.clear({
+          ...optinos,
+          range: getCellRange(role, ...Object.values(role.motivations)),
+          resource: {},
+        });
+        reportError(null);
       } catch (error) {
-        console.error("Error removing role:", error);
-        setError("Failed to remove role");
-        throw error;
+        reportError("Failed to remove role", error as Error);
       }
     },
-    [roles, motivations, updateFullSheet]
+    [roles, conflicts]
   );
 
   const updateMotivation = useCallbackVoid(
-    async (rowIndex: number, colIndex: number, value: string | null) => {
+    async (conflictId: CellId, roleId: CellId, value: string | null) => {
       value = value?.trim() || "";
-
+      const oldR = roles.find((r) => r.cellRef === roleId);
+      const oldC = conflicts.find((c) => c.cellRef === conflictId);
+      if (!oldR || !oldC) {
+        throw new Error(`Invalid coordinates: ${oldR} ${oldC}`);
+      }
       try {
-        const conflict = conflicts[rowIndex];
-        const role = roles[colIndex];
-        if (!conflict || !role) {
-          throw new Error("Invalid row or column index");
+        const cellRef = getCellRef(oldC.rowIndex, oldR.colIndex);
+        const motivationData = oldC.motivations[roleId];
+        if (motivationData?.value === value) {
+          return;
         }
+        const range = `Sheet1!${cellRef}`;
 
-        const range = `Sheet1!${String.fromCharCode(65 + colIndex + 1)}${
-          rowIndex + 2
-        }`;
-
-        await window.gapi.client.sheets.spreadsheets.values.update({
+        await gapi.client.sheets.spreadsheets.values.update({
           ...optinos,
           range,
           valueInputOption: "RAW",
           resource: { values: [[value]] },
         });
+        const newM: MotivationData = {
+          value,
+          type: "motivation",
+          rowIndex: oldC.rowIndex,
+          colIndex: oldR.colIndex,
+          cellRef,
+          role: roleId,
+          conflict: conflictId,
+        };
+        const newR = {
+          ...oldR,
+          motivations: { ...oldR.motivations, [conflictId]: newM },
+        };
+        const newC = {
+          ...oldC,
+          motivations: { ...oldC.motivations, [roleId]: newM },
+        };
 
-        setMotivations((prev) => ({
-          ...prev,
-          [`${conflict}-${role}`]: value,
-        }));
-        setError(null);
+        setRoles((prev) => prev.map((r) => (r === oldR ? newR : r)));
+        setConflicts((prev) => prev.map((c) => (c === oldC ? newC : c)));
+        reportError(null);
       } catch (error) {
-        console.error("Error updating motivation:", error);
-        setError("Failed to update motivation");
-        throw error;
+        reportError("Failed to update motivation", error as Error);
       }
     },
-    [sheetId, roles, conflicts]
+    [conflicts, roles]
   );
 
   const updateConflictName = useCallbackVoid(
-    async (index: number, newName: string | null) => {
+    async (cellRef: CellId, newName: string | null) => {
       newName = newName?.trim() || "";
       try {
-        const oldName = conflicts[index];
-        if (!oldName) {
+        const conflict = conflicts.find((c) => c.cellRef === cellRef);
+        if (!conflict) {
           throw new Error("Invalid conflict index");
         }
 
-        const newMotivations = { ...motivations };
-
-        Object.entries(motivations).forEach(([key, value]) => {
-          const [conflict, role] = key.split("-");
-          if (conflict === oldName) {
-            delete newMotivations[key];
-            newMotivations[`${newName}-${role}`] = value;
-          }
+        await gapi.client.sheets.spreadsheets.values.update({
+          ...optinos,
+          range: `Sheet1!${cellRef}`,
+          valueInputOption: "RAW",
+          resource: { values: [[newName]] },
         });
 
-        setConflicts((prev) => prev.map((c, i) => (i === index ? newName : c)));
-        setMotivations(newMotivations);
-        await updateFullSheet();
+        setConflicts((prev) =>
+          prev.map((c) =>
+            c.cellRef === cellRef ? { ...c, value: newName } : c
+          )
+        );
+        reportError(null);
       } catch (error) {
-        console.error("Error updating conflict name:", error);
-        setError("Failed to update conflict name");
-        throw error;
+        reportError("Failed to update conflict name", error as Error);
       }
     },
-    [motivations, updateFullSheet, conflicts]
+    [conflicts]
   );
 
   const updateRoleName = useCallbackVoid(
-    async (index: number, newName: string | null) => {
+    async (cellRef: CellId, newName: string | null) => {
       newName = newName?.trim() || "";
       try {
-        const oldName = roles[index];
-        if (!oldName) {
+        const role = roles.find((r) => r.cellRef === cellRef);
+        if (!role) {
           throw new Error("Invalid role index");
         }
 
-        const newMotivations = { ...motivations };
-
-        Object.entries(motivations).forEach(([key, value]) => {
-          const [conflict, role] = key.split("-");
-          if (role === oldName) {
-            delete newMotivations[key];
-            newMotivations[`${conflict}-${newName}`] = value;
-          }
+        await gapi.client.sheets.spreadsheets.values.update({
+          ...optinos,
+          range: `Sheet1!${cellRef}`,
+          valueInputOption: "RAW",
+          resource: { values: [[newName]] },
         });
 
-        setRoles((prev) => prev.map((r, i) => (i === index ? newName : r)));
-        setMotivations(newMotivations);
-        await updateFullSheet();
+        setRoles((prev) =>
+          prev.map((r) =>
+            r.cellRef === cellRef ? { ...r, value: newName } : r
+          )
+        );
+        reportError(null);
       } catch (error) {
-        console.error("Error updating role name:", error);
-        setError("Failed to update role name");
-        throw error;
+        reportError("Failed to update role name", error as Error);
       }
     },
-    [motivations, updateFullSheet, roles]
+    [roles]
   );
 
   return {
-    conflicts,
-    roles,
-    motivations,
+    conflicts: conflicts.filter(
+      (c) => c.value || Object.keys(c.motivations).length
+    ),
+    roles: roles.filter((r) => r.value || Object.keys(r.motivations).length),
     error,
     isLoading,
     loadData,

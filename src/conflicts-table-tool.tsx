@@ -1,12 +1,11 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, Plus, Trash2 } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import { useConflictsTable } from "@/hooks/useConflictsTable";
 
 type ConflictsTableToolProps = {
-  apiKey: string;
   token: string;
   sheetId: string;
 };
@@ -15,7 +14,6 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
   const {
     conflicts,
     roles,
-    motivations,
     error,
     isLoading,
     loadData,
@@ -26,26 +24,28 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     updateMotivation,
     updateConflictName,
     updateRoleName,
-  } = useConflictsTable({ sheetId, token });
+  } = useConflictsTable({ sheetId, token, gapi: window.gapi });
+
   useEffect(() => {
     if (token && sheetId) {
       loadData();
     }
   }, [token, sheetId, loadData]);
 
-  const handleAddConflict = async () => {
-    const newConflict = `New Conflict ${conflicts.length + 1}`;
-    await addConflict(newConflict);
-  };
+  const handleAddConflict = useCallback(
+    () => addConflict(`New Conflict ${conflicts.length + 1}`),
+    [addConflict, conflicts.length]
+  );
 
-  const handleAddRole = async () => {
-    const newRole = `New Role ${roles.length + 1}`;
-    await addRole(newRole);
-  };
+  const handleAddRole = useCallback(
+    () => addRole(`New Role ${roles.length + 1}`),
+    [addRole, roles.length]
+  );
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
+
   return (
     <div className="p-4 max-w-full overflow-x-auto">
       <Card className="mb-4">
@@ -54,7 +54,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
             <CardTitle>LARP Conflicts Table Tool</CardTitle>
             <div className="flex items-center gap-4">
               <a
-                href={`https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SPREADSHEET_ID}`}
+                href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
@@ -100,9 +100,9 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                   <th className="border border-gray-300 p-2 bg-gray-100">
                     Conflicts / Roles
                   </th>
-                  {roles.map((role, index) => (
+                  {roles.map((role) => (
                     <th
-                      key={index}
+                      key={role.cellRef}
                       className="border border-gray-300 p-2 bg-gray-100"
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -110,14 +110,14 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) =>
-                            updateRoleName(index, e.target.textContent)
+                            updateRoleName(role.cellRef, e.target.textContent)
                           }
                           className="flex-1"
                         >
-                          {role}
+                          {role.value}
                         </span>
                         <button
-                          onClick={() => removeRole(index)}
+                          onClick={() => removeRole(role.cellRef)}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />
@@ -128,46 +128,55 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                 </tr>
               </thead>
               <tbody>
-                {conflicts.map((conflict, rowIndex) => (
-                  <tr key={rowIndex}>
+                {conflicts.map((conflict) => (
+                  <tr key={conflict.cellRef}>
                     <td className="border border-gray-300 p-2 bg-gray-50">
                       <div className="flex items-center justify-between gap-2">
                         <span
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) =>
-                            updateConflictName(rowIndex, e.target.textContent)
+                            updateConflictName(
+                              conflict.cellRef,
+                              e.target.textContent
+                            )
                           }
                           className="flex-1"
                         >
-                          {conflict}
+                          {conflict.value}
                         </span>
                         <button
-                          onClick={() => removeConflict(rowIndex)}
+                          onClick={() => removeConflict(conflict.cellRef)}
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
-                    {roles.map((role, colIndex) => (
-                      <td key={colIndex} className="border border-gray-300 p-2">
-                        <div
-                          contentEditable
-                          suppressContentEditableWarning
-                          onBlur={(e) =>
-                            updateMotivation(
-                              rowIndex,
-                              colIndex,
-                              e.target.textContent || ""
-                            )
-                          }
-                          className="min-h-8 focus:outline-none focus:bg-blue-50"
+                    {roles.map((role) => {
+                      const motivation = conflict.motivations[role.cellRef];
+                      return (
+                        <td
+                          key={`${conflict.cellRef}-${role.cellRef}`}
+                          className="border border-gray-300 p-2"
                         >
-                          {motivations[`${conflict}-${role}`] || ""}
-                        </div>
-                      </td>
-                    ))}
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            onBlur={(e) =>
+                              updateMotivation(
+                                conflict.cellRef,
+                                role.cellRef,
+                                e.target.textContent
+                              )
+                            }
+                            className="min-h-8 focus:outline-none focus:bg-blue-50"
+                          >
+                            {motivation?.value || ""}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
