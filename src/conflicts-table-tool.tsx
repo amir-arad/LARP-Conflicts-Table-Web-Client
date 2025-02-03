@@ -1,9 +1,10 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Filter, Link, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useConflictsTable } from "@/hooks/useConflictsTable";
+import { useFlags } from "./hooks/useFlags";
 
 type ConflictsTableToolProps = {
   token: string;
@@ -11,13 +12,12 @@ type ConflictsTableToolProps = {
 };
 
 const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
-  const [roleFilters, setRoleFilters] = useState<string[]>(() => {
-    const saved = localStorage.getItem(`${sheetId}-roleFilters`);
-    return saved ? JSON.parse(saved) : [];
+  const [roleFilters, toggleRoleFilter] = useFlags({
+    namespace: `${sheetId}-roleFilters`,
   });
-  const [conflictFilters, setConflictFilters] = useState<string[]>(() => {
-    const saved = localStorage.getItem(`${sheetId}-conflictFilters`);
-    return saved ? JSON.parse(saved) : [];
+
+  const [conflictFilters, toggleConflictFilter] = useFlags({
+    namespace: `${sheetId}-conflictFilters`,
   });
 
   const {
@@ -35,18 +35,6 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     updateRoleName,
   } = useConflictsTable({ sheetId, token, gapi: window.gapi });
 
-  // Save filters to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem(`${sheetId}-roleFilters`, JSON.stringify(roleFilters));
-  }, [roleFilters, sheetId]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      `${sheetId}-conflictFilters`,
-      JSON.stringify(conflictFilters)
-    );
-  }, [conflictFilters, sheetId]);
-
   useEffect(() => {
     if (token && sheetId) {
       loadData();
@@ -60,29 +48,13 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
 
   const handleAddRole = useCallback(() => addRole(`New Role`), [addRole]);
 
-  const toggleRoleFilter = useCallback((roleName: string) => {
-    setRoleFilters((prev) =>
-      prev.includes(roleName)
-        ? prev.filter((r) => r !== roleName)
-        : [...prev, roleName]
-    );
-  }, []);
-
-  const toggleConflictFilter = useCallback((conflictName: string) => {
-    setConflictFilters((prev) =>
-      prev.includes(conflictName)
-        ? prev.filter((c) => c !== conflictName)
-        : [...prev, conflictName]
-    );
-  }, []);
-
   const filteredRoles = roles.filter(
-    (role) => roleFilters.length === 0 || roleFilters.includes(role.value)
+    (role) => roleFilters.length === 0 || roleFilters.includes(role.cellRef)
   );
 
   const filteredConflicts = conflicts.filter(
     (conflict) =>
-      conflictFilters.length === 0 || conflictFilters.includes(conflict.value)
+      conflictFilters.length === 0 || conflictFilters.includes(conflict.cellRef)
   );
   if (isLoading) {
     return <div>Loading Data...</div>;
@@ -144,9 +116,9 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                   {roles.map((role) => (
                     <button
                       key={role.cellRef}
-                      onClick={() => toggleRoleFilter(role.value)}
+                      onClick={() => toggleRoleFilter(role.cellRef)}
                       className={`px-3 py-1 rounded-full text-sm ${
-                        roleFilters.includes(role.value)
+                        roleFilters.includes(role.cellRef)
                           ? "bg-blue-500 text-white"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
@@ -164,9 +136,9 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                   {conflicts.map((conflict) => (
                     <button
                       key={conflict.cellRef}
-                      onClick={() => toggleConflictFilter(conflict.value)}
+                      onClick={() => toggleConflictFilter(conflict.cellRef)}
                       className={`px-3 py-1 rounded-full text-sm ${
-                        conflictFilters.includes(conflict.value)
+                        conflictFilters.includes(conflict.cellRef)
                           ? "bg-blue-500 text-white"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                       }`}
