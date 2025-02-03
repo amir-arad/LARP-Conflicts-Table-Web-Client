@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { Filter, Link, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useConflictsTable } from "@/hooks/useConflictsTable";
 
@@ -11,6 +11,15 @@ type ConflictsTableToolProps = {
 };
 
 const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
+  const [roleFilters, setRoleFilters] = useState<string[]>(() => {
+    const saved = localStorage.getItem(`${sheetId}-roleFilters`);
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [conflictFilters, setConflictFilters] = useState<string[]>(() => {
+    const saved = localStorage.getItem(`${sheetId}-conflictFilters`);
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const {
     conflicts,
     roles,
@@ -26,6 +35,18 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     updateRoleName,
   } = useConflictsTable({ sheetId, token, gapi: window.gapi });
 
+  // Save filters to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem(`${sheetId}-roleFilters`, JSON.stringify(roleFilters));
+  }, [roleFilters, sheetId]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      `${sheetId}-conflictFilters`,
+      JSON.stringify(conflictFilters)
+    );
+  }, [conflictFilters, sheetId]);
+
   useEffect(() => {
     if (token && sheetId) {
       loadData();
@@ -39,6 +60,30 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
 
   const handleAddRole = useCallback(() => addRole(`New Role`), [addRole]);
 
+  const toggleRoleFilter = useCallback((roleName: string) => {
+    setRoleFilters((prev) =>
+      prev.includes(roleName)
+        ? prev.filter((r) => r !== roleName)
+        : [...prev, roleName]
+    );
+  }, []);
+
+  const toggleConflictFilter = useCallback((conflictName: string) => {
+    setConflictFilters((prev) =>
+      prev.includes(conflictName)
+        ? prev.filter((c) => c !== conflictName)
+        : [...prev, conflictName]
+    );
+  }, []);
+
+  const filteredRoles = roles.filter(
+    (role) => roleFilters.length === 0 || roleFilters.includes(role.value)
+  );
+
+  const filteredConflicts = conflicts.filter(
+    (conflict) =>
+      conflictFilters.length === 0 || conflictFilters.includes(conflict.value)
+  );
   if (isLoading) {
     return <div>Loading Data...</div>;
   }
@@ -89,7 +134,50 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
               <Plus size={16} /> Add Role
             </button>
           </div>
-
+          <div className="mb-4">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <Filter size={16} /> Role Filters
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {roles.map((role) => (
+                    <button
+                      key={role.cellRef}
+                      onClick={() => toggleRoleFilter(role.value)}
+                      className={`px-3 py-1 rounded-full text-sm ${
+                        roleFilters.includes(role.value)
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      {role.value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <Filter size={16} /> Conflict Filters
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {conflicts.map((conflict) => (
+                    <button
+                      key={conflict.cellRef}
+                      onClick={() => toggleConflictFilter(conflict.value)}
+                      className={`px-3 py-1 rounded-full text-sm ${
+                        conflictFilters.includes(conflict.value)
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      {conflict.value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full border-collapse border border-gray-300">
               <thead>
@@ -97,7 +185,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                   <th className="border border-gray-300 p-2 bg-gray-100">
                     Conflicts / Roles
                   </th>
-                  {roles.map((role) => (
+                  {filteredRoles.map((role) => (
                     <th
                       key={role.cellRef}
                       className="border border-gray-300 p-2 bg-gray-100"
@@ -125,7 +213,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                 </tr>
               </thead>
               <tbody>
-                {conflicts.map((conflict) => (
+                {filteredConflicts.map((conflict) => (
                   <tr key={conflict.cellRef}>
                     <td className="border border-gray-300 p-2 bg-gray-50">
                       <div className="flex items-center justify-between gap-2">
@@ -150,7 +238,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                         </button>
                       </div>
                     </td>
-                    {roles.map((role) => {
+                    {filteredRoles.map((role) => {
                       const motivation = conflict.motivations[role.cellRef];
                       return (
                         <td
