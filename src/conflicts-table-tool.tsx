@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, Plus, Trash2 } from "lucide-react";
-import React, { useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useConflictsTable } from "@/hooks/useConflictsTable";
 
@@ -33,17 +33,14 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
   }, [token, sheetId, loadData]);
 
   const handleAddConflict = useCallback(
-    () => addConflict(`New Conflict ${conflicts.length + 1}`),
-    [addConflict, conflicts.length]
+    () => addConflict(`New Conflict`),
+    [addConflict]
   );
 
-  const handleAddRole = useCallback(
-    () => addRole(`New Role ${roles.length + 1}`),
-    [addRole, roles.length]
-  );
+  const handleAddRole = useCallback(() => addRole(`New Role`), [addRole]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading Data...</div>;
   }
 
   return (

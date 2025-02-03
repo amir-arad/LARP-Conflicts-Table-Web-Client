@@ -1,4 +1,4 @@
-import { waitFor, act } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { expect, vi } from "vitest";
 import {
   CellId,
@@ -6,7 +6,6 @@ import {
   UseConflictsTableProps,
   useConflictsTable,
 } from "./useConflictsTable";
-import { renderHook } from "@testing-library/react";
 
 function mockSheetsApi() {
   return {
@@ -129,50 +128,34 @@ export class ConflictsTableTestDriver {
   }
 
   loadData(): void {
-    act(() => {
-      this.result.current.loadData();
-    });
+    this.result.current.loadData();
   }
 
   addConflict(conflict: string): void {
-    act(() => {
-      this.result.current.addConflict(conflict);
-    });
+    this.result.current.addConflict(conflict);
   }
 
   addRole(role: string): void {
-    act(() => {
-      this.result.current.addRole(role);
-    });
+    this.result.current.addRole(role);
   }
 
   removeConflict(id: CellId): void {
-    act(() => {
-      this.result.current.removeConflict(id);
-    });
+    this.result.current.removeConflict(id);
   }
 
   removeRole(id: CellId): void {
-    act(() => {
-      this.result.current.removeRole(id);
-    });
+    this.result.current.removeRole(id);
   }
 
   updateMotivation(conflictId: CellId, roleId: CellId, value: string): void {
-    act(() => {
-      this.result.current.updateMotivation(conflictId, roleId, value);
-    });
+    this.result.current.updateMotivation(conflictId, roleId, value);
   }
 
   updateConflictName(id: CellId, newName: string): void {
-    act(() => {
-      this.result.current.updateConflictName(id, newName);
-    });
+    this.result.current.updateConflictName(id, newName);
   }
 
   updateRoleName(id: CellId, newName: string): void {
-    act(() => {
-      this.result.current.updateRoleName(id, newName);
-    });
+    this.result.current.updateRoleName(id, newName);
   }
 }

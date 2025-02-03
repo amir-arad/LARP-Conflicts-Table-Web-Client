@@ -28,7 +28,7 @@ const App = () => {
     );
   }
   if (!isReady) {
-    return <div>Loading...</div>;
+    return <div>Authenticating...</div>;
   }
   return (
     <BrowserRouter>
@@ -51,11 +51,7 @@ const App = () => {
           <Route
             path="/"
             element={
-              <ConflictsTableTool
-                apiKey={apiKey}
-                token={access_token}
-                sheetId={sheetId}
-              />
+              <ConflictsTableTool token={access_token} sheetId={sheetId} />
             }
           />
         </Routes>

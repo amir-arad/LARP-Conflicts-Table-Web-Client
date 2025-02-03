@@ -1,7 +1,7 @@
-import { act, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { ConflictsTableTestDriver } from "./conflictsTableTestDriver";
+import { waitFor } from "@testing-library/react";
 
 describe("useConflictsTable", () => {
   let driver: ConflictsTableTestDriver;
@@ -51,8 +51,11 @@ describe("useConflictsTable", () => {
     });
 
     it("should handle API errors gracefully", async () => {
-      await driver.setTestData(Promise.reject(new Error("API Error")));
-      expect(driver.getError()).toMatch("API Error");
+      // Your test code here
+      await driver.setTestData(Promise.reject(new Error("API Error")), false);
+
+      driver.loadData();
+      await waitFor(() => expect(driver.getError()).toMatch("API Error"));
     });
   });
 
