@@ -4,11 +4,12 @@ import {
   EditableTableCell,
   MotivationTableCell,
 } from "@/components/ui/table-cell";
-import { Filter, Link, Plus, Trash2 } from "lucide-react";
+import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
-import { useTranslations } from "@/hooks/useTranslations";
+
 import { useConflictsTable } from "@/hooks/useConflictsTable";
 import { useFlags } from "./hooks/useFlags";
+import { useTranslations } from "@/hooks/useTranslations";
 
 type ConflictsTableToolProps = {
   token: string;
@@ -47,12 +48,12 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
   }, [token, sheetId, loadData]);
 
   const handleAddConflict = useCallback(
-    () => addConflict(t('table.newConflict')),
+    () => addConflict(t("table.newConflict")),
     [addConflict, t]
   );
 
   const handleAddRole = useCallback(
-    () => addRole(t('table.newRole')),
+    () => addRole(t("table.newRole")),
     [addRole, t]
   );
 
@@ -66,7 +67,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
   );
 
   if (isLoading) {
-    return <div>{t('app.loading')}</div>;
+    return <div>{t("app.loading")}</div>;
   }
 
   return (
@@ -74,7 +75,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
       <Card className="mb-4">
         <CardHeader>
           <div className="flex justify-between items-center [dir='rtl']:flex-row-reverse">
-            <CardTitle>{t('app.title')}</CardTitle>
+            <CardTitle>{t("app.title")}</CardTitle>
             <div className="flex items-center gap-4 [dir='rtl']:flex-row-reverse">
               <a
                 href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
@@ -82,7 +83,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse"
               >
-                <Link size={16} /> {t('app.openInSheets')}
+                <Link size={16} /> {t("app.openInSheets")}
               </a>
             </div>
           </div>
@@ -95,9 +96,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
           )}
 
           <Alert className="mb-4">
-            <AlertDescription>
-              {t('app.autoSave')}
-            </AlertDescription>
+            <AlertDescription>{t("app.autoSave")}</AlertDescription>
           </Alert>
 
           <div className="flex gap-4 mb-4 [dir='rtl']:flex-row-reverse">
@@ -105,13 +104,13 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
               onClick={handleAddConflict}
               className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 [dir='rtl']:flex-row-reverse"
             >
-              <Plus size={16} /> {t('action.addConflict')}
+              <Plus size={16} /> {t("action.addConflict")}
             </button>
             <button
               onClick={handleAddRole}
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 [dir='rtl']:flex-row-reverse"
             >
-              <Plus size={16} /> {t('action.addRole')}
+              <Plus size={16} /> {t("action.addRole")}
             </button>
           </div>
 
@@ -119,7 +118,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
             <div className="flex flex-col gap-4">
               <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2 [dir='rtl']:flex-row-reverse">
-                  <Filter size={16} /> {t('filter.roles')}
+                  <Filter size={16} /> {t("filter.roles")}
                 </h3>
                 <div className="flex flex-wrap gap-2 [dir='rtl']:flex-row-reverse">
                   {roles.map((role) => (
@@ -139,7 +138,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
               </div>
               <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2 [dir='rtl']:flex-row-reverse">
-                  <Filter size={16} /> {t('filter.conflicts')}
+                  <Filter size={16} /> {t("filter.conflicts")}
                 </h3>
                 <div className="flex flex-wrap gap-2 [dir='rtl']:flex-row-reverse">
                   {conflicts.map((conflict) => (
@@ -164,7 +163,7 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
             <table className="min-w-full border-collapse border border-gray-300 [dir='rtl']:text-right">
               <thead>
                 <tr>
-                  <EditableTableCell isHeader content={t('table.header')} />
+                  <EditableTableCell isHeader content={t("table.header")} />
                   {filteredRoles.map((role) => (
                     <EditableTableCell
                       key={role.cellRef}

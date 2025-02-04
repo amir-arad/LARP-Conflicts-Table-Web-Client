@@ -1,16 +1,23 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-type Direction = "ltr" | "rtl";
-type Language = "en" | "he";
+export type Direction = "ltr" | "rtl";
+export type Language = "en" | "he";
 
-function getLanguage(override: string | null): Language {
-  if (override && ["en", "he"].includes(override)) {
-    return override as Language;
+function validateLanguage(
+  val: string | null,
+  defaultLang: Language = "he"
+): Language {
+  if (val === "he" || val === "en") return val;
+  if (val) {
+    console.error(`Invalid language: ${val}`);
   }
-  if (override && !["en", "he"].includes(override)) {
-    console.error(`Invalid language: ${override}`);
-  }
-  return "he";
+  return defaultLang;
 }
 interface LanguageContextType {
   direction: Direction;
@@ -21,8 +28,8 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>(() =>
-    getLanguage(localStorage.getItem(`language`))
+  const [language, setLanguageInner] = useState<Language>(() =>
+    validateLanguage(localStorage.getItem(`language`))
   );
   const [direction, setDirection] = useState<Direction>("ltr");
 
@@ -32,6 +39,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dir = language === "he" ? "rtl" : "ltr";
     document.documentElement.lang = language;
   }, [language]);
+
+  const setLanguage = useCallback((lang: string) => {
+    setLanguageInner((oldVal) => validateLanguage(lang, oldVal));
+  }, []);
 
   const value = {
     direction,

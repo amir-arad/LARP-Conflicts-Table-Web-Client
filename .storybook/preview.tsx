@@ -1,7 +1,6 @@
 import "../src/index.css";
 
-import type { Preview, Renderer } from "@storybook/react";
-
+import type { Preview } from "@storybook/react";
 import React from "react";
 import { withThemeByClassName } from "@storybook/addon-themes";
 
@@ -16,16 +15,13 @@ const preview: Preview = {
     layout: "centered",
   },
   decorators: [
-    // Theme decorator
-    withThemeByClassName<Renderer>({
+    withThemeByClassName({
       themes: {
         light: "",
         dark: "dark",
       },
       defaultTheme: "light",
-      // attributeName: "data-mode",
     }),
-    // RTL decorator
     (Story) => (
       <div className="min-h-screen bg-background p-8">
         <Story />
