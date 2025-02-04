@@ -1,8 +1,12 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  EditableTableCell,
+  MotivationTableCell,
+} from "@/components/ui/table-cell";
 import { Filter, Link, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect } from "react";
-
+import { useTranslations } from "@/hooks/useTranslations";
 import { useConflictsTable } from "@/hooks/useConflictsTable";
 import { useFlags } from "./hooks/useFlags";
 
@@ -12,6 +16,7 @@ type ConflictsTableToolProps = {
 };
 
 const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
+  const { t } = useTranslations();
   const [roleFilters, toggleRoleFilter] = useFlags({
     namespace: `${sheetId}-roleFilters`,
   });
@@ -42,11 +47,14 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
   }, [token, sheetId, loadData]);
 
   const handleAddConflict = useCallback(
-    () => addConflict(`New Conflict`),
-    [addConflict]
+    () => addConflict(t('table.newConflict')),
+    [addConflict, t]
   );
 
-  const handleAddRole = useCallback(() => addRole(`New Role`), [addRole]);
+  const handleAddRole = useCallback(
+    () => addRole(t('table.newRole')),
+    [addRole, t]
+  );
 
   const filteredRoles = roles.filter(
     (role) => roleFilters.length === 0 || roleFilters.includes(role.cellRef)
@@ -56,24 +64,25 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     (conflict) =>
       conflictFilters.length === 0 || conflictFilters.includes(conflict.cellRef)
   );
+
   if (isLoading) {
-    return <div>Loading Data...</div>;
+    return <div>{t('app.loading')}</div>;
   }
 
   return (
     <div className="p-4 max-w-full overflow-x-auto">
       <Card className="mb-4">
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>LARP Conflicts Table Tool</CardTitle>
-            <div className="flex items-center gap-4">
+          <div className="flex justify-between items-center [dir='rtl']:flex-row-reverse">
+            <CardTitle>{t('app.title')}</CardTitle>
+            <div className="flex items-center gap-4 [dir='rtl']:flex-row-reverse">
               <a
                 href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse"
               >
-                <Link size={16} /> Open in Google Sheets
+                <Link size={16} /> {t('app.openInSheets')}
               </a>
             </div>
           </div>
@@ -87,32 +96,32 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
 
           <Alert className="mb-4">
             <AlertDescription>
-              All changes are automatically saved to the shared Google Sheet.
-              Multiple people can edit simultaneously.
+              {t('app.autoSave')}
             </AlertDescription>
           </Alert>
 
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-4 mb-4 [dir='rtl']:flex-row-reverse">
             <button
               onClick={handleAddConflict}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 [dir='rtl']:flex-row-reverse"
             >
-              <Plus size={16} /> Add Conflict
+              <Plus size={16} /> {t('action.addConflict')}
             </button>
             <button
               onClick={handleAddRole}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 [dir='rtl']:flex-row-reverse"
             >
-              <Plus size={16} /> Add Role
+              <Plus size={16} /> {t('action.addRole')}
             </button>
           </div>
+
           <div className="mb-4">
             <div className="flex flex-col gap-4">
               <div>
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Filter size={16} /> Role Filters
+                <h3 className="font-semibold mb-2 flex items-center gap-2 [dir='rtl']:flex-row-reverse">
+                  <Filter size={16} /> {t('filter.roles')}
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 [dir='rtl']:flex-row-reverse">
                   {roles.map((role) => (
                     <button
                       key={role.cellRef}
@@ -129,10 +138,10 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                 </div>
               </div>
               <div>
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Filter size={16} /> Conflict Filters
+                <h3 className="font-semibold mb-2 flex items-center gap-2 [dir='rtl']:flex-row-reverse">
+                  <Filter size={16} /> {t('filter.conflicts')}
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 [dir='rtl']:flex-row-reverse">
                   {conflicts.map((conflict) => (
                     <button
                       key={conflict.cellRef}
@@ -150,88 +159,52 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
               </div>
             </div>
           </div>
+
           <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse border border-gray-300">
+            <table className="min-w-full border-collapse border border-gray-300 [dir='rtl']:text-right">
               <thead>
                 <tr>
-                  <th className="border border-gray-300 p-2 bg-gray-100">
-                    Conflicts / Roles
-                  </th>
+                  <EditableTableCell isHeader content={t('table.header')} />
                   {filteredRoles.map((role) => (
-                    <th
+                    <EditableTableCell
                       key={role.cellRef}
-                      className="border border-gray-300 p-2 bg-gray-100"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          contentEditable
-                          suppressContentEditableWarning
-                          onBlur={(e) =>
-                            updateRoleName(role.cellRef, e.target.textContent)
-                          }
-                          className="flex-1"
-                        >
-                          {role.value}
-                        </span>
-                        <button
-                          onClick={() => removeRole(role.cellRef)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </th>
+                      isHeader
+                      content={role.value}
+                      onUpdate={(newContent) =>
+                        updateRoleName(role.cellRef, newContent)
+                      }
+                      showDelete
+                      onDelete={() => removeRole(role.cellRef)}
+                    />
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredConflicts.map((conflict) => (
                   <tr key={conflict.cellRef}>
-                    <td className="border border-gray-300 p-2 bg-gray-50">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          contentEditable
-                          suppressContentEditableWarning
-                          onBlur={(e) =>
-                            updateConflictName(
-                              conflict.cellRef,
-                              e.target.textContent
-                            )
-                          }
-                          className="flex-1"
-                        >
-                          {conflict.value}
-                        </span>
-                        <button
-                          onClick={() => removeConflict(conflict.cellRef)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+                    <EditableTableCell
+                      content={conflict.value}
+                      onUpdate={(newContent) =>
+                        updateConflictName(conflict.cellRef, newContent)
+                      }
+                      showDelete
+                      onDelete={() => removeConflict(conflict.cellRef)}
+                      className="bg-gray-50"
+                    />
                     {filteredRoles.map((role) => {
                       const motivation = conflict.motivations[role.cellRef];
                       return (
-                        <td
+                        <MotivationTableCell
                           key={`${conflict.cellRef}-${role.cellRef}`}
-                          className="border border-gray-300 p-2"
-                        >
-                          <div
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={(e) =>
-                              updateMotivation(
-                                conflict.cellRef,
-                                role.cellRef,
-                                e.target.textContent
-                              )
-                            }
-                            className="min-h-8 focus:outline-none focus:bg-blue-50"
-                          >
-                            {motivation?.value || ""}
-                          </div>
-                        </td>
+                          content={motivation?.value || ""}
+                          onUpdate={(newContent) =>
+                            updateMotivation(
+                              conflict.cellRef,
+                              role.cellRef,
+                              newContent
+                            )
+                          }
+                        />
                       );
                     })}
                   </tr>

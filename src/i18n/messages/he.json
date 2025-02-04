@@ -1,0 +1,15 @@
+{
+  "app.title": "כלי טבלת קונפליקטים לארפ",
+  "app.loading": "טוען נתונים...",
+  "app.openInSheets": "פתח בגיליונות גוגל",
+  "app.autoSave": "כל השינויים נשמרים אוטומטית בגיליון המשותף. מספר אנשים יכולים לערוך במקביל.",
+  "action.addConflict": "הוסף קונפליקט",
+  "action.addRole": "הוסף תפקיד",
+  "action.login": "התחבר",
+  "action.authenticating": "מאמת...",
+  "filter.roles": "סינון תפקידים",
+  "filter.conflicts": "סינון קונפליקטים",
+  "table.header": "קונפליקטים / תפקידים",
+  "table.newConflict": "קונפליקט חדש",
+  "table.newRole": "תפקיד חדש"
+}

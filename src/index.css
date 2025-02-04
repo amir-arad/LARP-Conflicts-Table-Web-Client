@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 @tailwind utilities;
+
+@media (prefers-color-scheme: dark) {
+  html {
+    --text-color: white;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -29,6 +36,10 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem
   }
+  :root[dir="rtl"] {
+    --font-sans: "Assistant", "Rubik", system-ui, sans-serif;
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -58,8 +69,80 @@
   * {
     border: hsl(var(--border));
   }
+  
   body {
+    font-feature-settings: "rlig" 1, "calt" 1;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+  }
+
+    [dir="rtl"] {
+      .text-start {
+        text-align: right;
+      }
+      
+      .text-end {
+        text-align: left;
+      }
+    }
+  
+    .bidi-auto {
+      unicode-bidi: plaintext;
+    }
+  
+    [dir="rtl"] .hebrew-numbers {
+      direction: ltr;
+      display: inline-block;
+    }
+}
+
+@layer components {
+  .card-header[dir="rtl"],
+  .card-content[dir="rtl"] {
+    text-align: right;
+  }
+
+  .table-cell[dir="rtl"] {
+    text-align: right;
+  }
+
+  .input-rtl {
+    text-align: right;
+    direction: rtl;
+  }
+
+  /* Handle mixed content */
+  .mixed-content {
+    text-align: start;
+    &[lang="en"] {
+      direction: ltr;
+      unicode-bidi: embed;
+    }
+    &[lang="he"] {
+      direction: rtl;
+      unicode-bidi: embed;
+    }
+  }
+  
+  /* Table RTL specifics */
+  [dir="rtl"] table {
+    text-align: right;
+  }
+
+  [dir="rtl"] .editable-content {
+    text-align: right;
+    direction: rtl;
+  }
+
+  /* Handle mixed content in table cells */
+  [dir="rtl"] .mixed-content-cell {
+    &[lang="en"] {
+      direction: ltr;
+      text-align: left;
+    }
+    &[lang="he"] {
+      direction: rtl;
+      text-align: right;
+    }
   }
 }

@@ -1,3 +1,5 @@
+import { fontFamily } from "tailwindcss/defaultTheme";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
@@ -7,7 +9,17 @@ export default {
     "./.storybook/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
+      fontFamily: {
+        sans: ["Assistant", "Rubik", ...fontFamily.sans],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -58,7 +70,25 @@ export default {
       borderColor: {
         border: "hsl(var(--border))",
       },
+      spacing: {
+        "inline-start": "margin-inline-start",
+        "inline-end": "margin-inline-end",
+        "block-start": "margin-block-start",
+        "block-end": "margin-block-end",
+      },
+      margin: {
+        start: "margin-inline-start",
+        end: "margin-inline-end",
+      },
+      padding: {
+        start: "padding-inline-start",
+        end: "padding-inline-end",
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("tailwindcss-logical-properties"),
+    require("tailwindcss-rtl"),
+  ],
 };

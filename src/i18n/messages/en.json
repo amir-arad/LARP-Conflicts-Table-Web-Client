@@ -1,0 +1,15 @@
+{
+  "app.title": "LARP Conflicts Table Tool",
+  "app.loading": "Loading Data...",
+  "app.openInSheets": "Open in Google Sheets",
+  "app.autoSave": "All changes are automatically saved to the shared Google Sheet. Multiple people can edit simultaneously.",
+  "action.addConflict": "Add Conflict",
+  "action.addRole": "Add Role",
+  "action.login": "Log In",
+  "action.authenticating": "Authenticating...",
+  "filter.roles": "Role Filters",
+  "filter.conflicts": "Conflict Filters",
+  "table.header": "Conflicts / Roles",
+  "table.newConflict": "New Conflict",
+  "table.newRole": "New Role"
+}
