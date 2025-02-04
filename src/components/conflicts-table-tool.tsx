@@ -1,15 +1,12 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  EditableTableCell,
-  MotivationTableCell,
-} from "@/components/ui/table-cell";
+import { Alert, AlertDescription } from "./ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
 import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
-import { useConflictsTable } from "@/hooks/useConflictsTable";
+import { useConflictsTable } from "../hooks/useConflictsTable";
 import { useFlags } from "../hooks/useFlags";
-import { useTranslations } from "@/hooks/useTranslations";
+import { useTranslations } from "../hooks/useTranslations";
 
 type ConflictsTableToolProps = {
   token: string;
