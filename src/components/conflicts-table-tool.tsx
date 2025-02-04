@@ -8,7 +8,7 @@ import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
 import { useConflictsTable } from "@/hooks/useConflictsTable";
-import { useFlags } from "./hooks/useFlags";
+import { useFlags } from "../hooks/useFlags";
 import { useTranslations } from "@/hooks/useTranslations";
 
 type ConflictsTableToolProps = {

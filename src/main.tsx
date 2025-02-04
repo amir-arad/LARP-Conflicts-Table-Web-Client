@@ -3,7 +3,7 @@ import "./index.css";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { apiKey, clientId, sheetId } from "./config";
 
-import ConflictsTableTool from "./conflicts-table-tool";
+import ConflictsTableTool from "./components/conflicts-table-tool";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { I18nProvider } from "./i18n/I18nProvider";
 import { LanguageProvider } from "./contexts/LanguageContext";
