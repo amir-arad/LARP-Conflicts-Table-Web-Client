@@ -1,4 +1,4 @@
-import { DependencyList, act, useCallback, useRef, useState } from "react";
+import { DependencyList, useCallback, useRef, useState } from "react";
 
 import { ReadonlyDeep } from "type-fest";
 
@@ -9,8 +9,10 @@ export interface UseConflictsTableProps {
   token: string;
   gapi: typeof gapi;
 }
+
 export type CellId = string;
 interface CellNode {
+  _oldVal?: string;
   type: "role" | "conflict" | "motivation";
   value: string;
   rowIndex: number;
@@ -270,16 +272,22 @@ export function useConflictsTable({
         throw new Error("Invalid conflict cell ref");
       }
       setConflicts((prev) => {
-        const index = prev.indexOf(conflict);
+        const index = prev.findIndex((c) => c.cellRef === cellRef);
         switch (index) {
           case -1:
             return prev;
           case prev.length - 1:
             return prev.slice(0, index);
           default:
+            const conflict = prev[index];
             return [
               ...prev.slice(0, index),
-              { ...conflict, value: "", motivations: {} },
+              {
+                ...conflict,
+                value: "",
+                motivations: {},
+                _oldVal: conflict.value,
+              },
               ...prev.slice(index + 1),
             ];
         }
@@ -302,16 +310,17 @@ export function useConflictsTable({
         throw new Error("Invalid role cell ref");
       }
       setRoles((prev) => {
-        const index = prev.indexOf(role);
+        const index = prev.findIndex((c) => c.cellRef === cellRef);
         switch (index) {
           case -1:
             return prev;
           case prev.length - 1:
             return prev.slice(0, index);
           default:
+            const role = prev[index];
             return [
               ...prev.slice(0, index),
-              { ...role, value: "", motivations: {} },
+              { ...role, value: "", motivations: {}, _oldVal: role.value },
               ...prev.slice(index + 1),
             ];
         }
@@ -329,44 +338,75 @@ export function useConflictsTable({
     "update motivation",
     async (conflictId: CellId, roleId: CellId, value: string | null) => {
       value = value?.trim() || "";
-      const oldR = roles.find((r) => r.cellRef === roleId);
-      const oldC = conflicts.find((c) => c.cellRef === conflictId);
-      if (!oldR || !oldC) {
-        throw new Error(`Invalid coordinates: ${oldR} ${oldC}`);
+      const role = roles.find((r) => r.cellRef === roleId);
+      const conflict = conflicts.find((c) => c.cellRef === conflictId);
+      if (!role || !conflict) {
+        throw new Error(`Invalid coordinates: ${role} ${conflict}`);
       }
-      const cellRef = getCellRef(oldC.rowIndex, oldR.colIndex);
-      const motivationData = oldC.motivations[roleId];
-      if (motivationData?.value === value) {
+      const cellRef = getCellRef(conflict.rowIndex, role.colIndex);
+      const motivation = conflict.motivations[roleId];
+      if (motivation?.value === value) {
         return;
       }
-      const range = `Sheet1!${cellRef}`;
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range,
+        range: `Sheet1!${cellRef}`,
         valueInputOption: "RAW",
         resource: { values: [[value]] },
       });
-      const newM: MotivationData = {
-        value,
+      const newMotivationBase: Omit<MotivationData, "value"> = {
         type: "motivation",
-        rowIndex: oldC.rowIndex,
-        colIndex: oldR.colIndex,
+        rowIndex: conflict.rowIndex,
+        colIndex: role.colIndex,
         cellRef,
         role: roleId,
         conflict: conflictId,
       };
-      const newR = {
-        ...oldR,
-        motivations: { ...oldR.motivations, [conflictId]: newM },
-      };
-      const newC = {
-        ...oldC,
-        motivations: { ...oldC.motivations, [roleId]: newM },
-      };
-
-      setRoles((prev) => prev.map((r) => (r === oldR ? newR : r)));
-      setConflicts((prev) => prev.map((c) => (c === oldC ? newC : c)));
+      setRoles((prev) => {
+        const oldR = prev.find((r) => r.cellRef === roleId);
+        if (!oldR) return prev;
+        const oldMotivation = oldR.motivations[conflictId];
+        if (oldMotivation?.value === value) return prev;
+        const newM = {
+          ...newMotivationBase,
+          value,
+          colIndex: oldR.colIndex,
+        };
+        if (oldMotivation) {
+          newM._oldVal = oldMotivation.value;
+        }
+        const newR = {
+          ...oldR,
+          motivations: {
+            ...oldR.motivations,
+            [conflictId]: newM,
+          },
+        };
+        return prev.map((r) => (r === oldR ? newR : r));
+      });
+      setConflicts((prev) => {
+        const oldC = prev.find((r) => r.cellRef === conflictId);
+        if (!oldC) return prev;
+        const oldMotivation = oldC.motivations[roleId];
+        if (oldMotivation?.value === value) return prev;
+        const newM = {
+          ...newMotivationBase,
+          value,
+          rowIndex: oldC.rowIndex,
+        };
+        if (oldMotivation) {
+          newM._oldVal = oldMotivation.value;
+        }
+        const newC = {
+          ...oldC,
+          motivations: {
+            ...oldC.motivations,
+            [roleId]: newM,
+          },
+        };
+        return prev.map((c) => (c === oldC ? newC : c));
+      });
     },
     [...optionsDeps, conflicts, roles]
   );
@@ -388,7 +428,9 @@ export function useConflictsTable({
       });
 
       setConflicts((prev) =>
-        prev.map((c) => (c.cellRef === cellRef ? { ...c, value: newName } : c))
+        prev.map((c) =>
+          c.cellRef === cellRef ? { ...c, value: newName, _oldVal: c.value } : c
+        )
       );
     },
     [...optionsDeps, conflicts]
@@ -411,7 +453,9 @@ export function useConflictsTable({
       });
 
       setRoles((prev) =>
-        prev.map((r) => (r.cellRef === cellRef ? { ...r, value: newName } : r))
+        prev.map((r) =>
+          r.cellRef === cellRef ? { ...r, value: newName, _oldVal: r.value } : r
+        )
       );
     },
     [...optionsDeps, roles]
