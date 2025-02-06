@@ -1,6 +1,6 @@
 import "./index.css";
 
-import { AuthProvider, useAuth } from "./contexts/GoogleAuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { clientId, sheetId } from "./config";
 

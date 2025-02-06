@@ -12,7 +12,7 @@ import {
 } from "react";
 import { connectionManager, realtimeDB } from "../lib/firebase";
 
-import { useAuth } from "./GoogleAuthContext";
+import { useAuth } from "./AuthContext";
 
 type PresenceError = {
   code: "REGISTRATION_FAILED" | "CLEANUP_FAILED" | "HEARTBEAT_FAILED";

@@ -6,7 +6,7 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { connectionManager, realtimeDB } from "../lib/firebase";
 
-import { AuthProvider } from "./GoogleAuthContext";
+import { AuthProvider } from "./AuthContext";
 import { ReactNode } from "react";
 
 // Mock Firebase modules
@@ -29,7 +29,7 @@ vi.mock("../lib/firebase", () => ({
 }));
 
 // Mock Google Auth
-vi.mock("./GoogleAuthContext", () => ({
+vi.mock("./AuthContext", () => ({
   AuthProvider: ({ children }: { children: ReactNode }) => children,
   useAuth: () => ({
     isReady: true,

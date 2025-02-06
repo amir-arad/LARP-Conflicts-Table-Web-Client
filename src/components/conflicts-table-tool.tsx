@@ -4,7 +4,7 @@ import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
 import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
-import { useAuth } from "../contexts/GoogleAuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useCollaboration } from "../contexts/CollaborationContext";
 import { useConflictsTable } from "../hooks/useConflictsTable";
 import { useFlags } from "../hooks/useFlags";
