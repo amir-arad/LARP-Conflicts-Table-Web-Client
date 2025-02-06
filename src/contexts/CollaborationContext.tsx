@@ -1,8 +1,4 @@
-import type {
-  CollaborationState,
-  Presence,
-  timestamp,
-} from "../lib/collaboration";
+import type { CollaborationState, Presence } from "../lib/collaboration";
 import {
   ReactNode,
   createContext,
@@ -14,9 +10,25 @@ import { connectionManager, realtimeDB } from "../lib/firebase";
 
 import { useAuth } from "./GoogleAuthContext";
 
+type PresenceError = {
+  code: "REGISTRATION_FAILED" | "CLEANUP_FAILED";
+  message: string;
+  details?: unknown;
+};
+
+type PresenceRegistrationOptions = {
+  onError?: (error: PresenceError) => void;
+};
+
 interface CollaborationContextType {
   isConnected: boolean;
   collaborationStates: Map<string, CollaborationState>;
+  registerPresence: (
+    presenceData: Presence,
+    options?: PresenceRegistrationOptions
+  ) => Promise<void>;
+  unregisterPresence: () => Promise<void>;
+  setCurrentNamespace: (namespace: string | null) => void;
 }
 
 const CollaborationContext = createContext<CollaborationContextType | null>(
@@ -34,6 +46,8 @@ export function CollaborationProvider({
   const [collaborationStates] = useState<Map<string, CollaborationState>>(
     new Map()
   );
+  const [currentNamespace, setCurrentNamespace] = useState<string | null>(null);
+  const [cleanupFn, setCleanupFn] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     return connectionManager.monitorConnection((connected) => {
@@ -41,9 +55,60 @@ export function CollaborationProvider({
     });
   }, []);
 
+  const registerPresence = async (
+    presenceData: Presence,
+    options?: PresenceRegistrationOptions
+  ): Promise<void> => {
+    if (!currentNamespace) {
+      const error: PresenceError = {
+        code: "REGISTRATION_FAILED",
+        message: "No active namespace",
+      };
+      options?.onError?.(error);
+      throw error;
+    }
+
+    try {
+      const userId = `user-${Math.random().toString(36).substr(2, 9)}`;
+      const cleanup = connectionManager.setupPresenceHeartbeat(
+        currentNamespace,
+        userId,
+        presenceData
+      );
+      setCleanupFn(() => cleanup);
+    } catch (error) {
+      const presenceError: PresenceError = {
+        code: "REGISTRATION_FAILED",
+        message: "Failed to register presence",
+        details: error,
+      };
+      options?.onError?.(presenceError);
+      throw presenceError;
+    }
+  };
+
+  const unregisterPresence = async (): Promise<void> => {
+    try {
+      if (cleanupFn) {
+        cleanupFn();
+        setCleanupFn(null);
+      }
+    } catch (error) {
+      const presenceError: PresenceError = {
+        code: "CLEANUP_FAILED",
+        message: "Failed to cleanup presence",
+        details: error,
+      };
+      throw presenceError;
+    }
+  };
+
   const value = {
     isConnected,
     collaborationStates,
+    registerPresence,
+    unregisterPresence,
+    setCurrentNamespace,
   };
 
   return (
@@ -61,7 +126,7 @@ export function useCollaboration(namespace: string) {
     );
   }
 
-  const { isConnected } = context;
+  const { isConnected, setCurrentNamespace } = context;
   const [state, setState] = useState<CollaborationState>({
     presence: {},
     locks: {},
@@ -72,18 +137,7 @@ export function useCollaboration(namespace: string) {
   useEffect(() => {
     if (!namespace || !access_token || !isReady) return;
 
-    const userId = "user-" + Math.random().toString(36).substr(2, 9);
-    const presenceData: Presence = {
-      name: "Anonymous",
-      photoUrl: "",
-      lastActive: Date.now() as timestamp,
-    };
-
-    const cleanupPresence = connectionManager.setupPresenceHeartbeat(
-      namespace,
-      userId,
-      presenceData
-    );
+    setCurrentNamespace(namespace);
 
     const unsubPresence = realtimeDB.presence.subscribeToPresence(
       namespace,
@@ -96,7 +150,7 @@ export function useCollaboration(namespace: string) {
     );
 
     return () => {
-      cleanupPresence?.();
+      setCurrentNamespace(null);
       unsubPresence();
       unsubLocks();
     };
@@ -107,5 +161,7 @@ export function useCollaboration(namespace: string) {
     presence: state.presence,
     locks: state.locks,
     namespace,
+    registerPresence: context.registerPresence,
+    unregisterPresence: context.unregisterPresence,
   };
 }

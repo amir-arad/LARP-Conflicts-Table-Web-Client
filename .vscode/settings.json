@@ -27,5 +27,7 @@
     "**/*.taskpaper",
     "**/todolist.txt",
     "**/*.todo.md"
-  ]
+  ],
+  "editor.formatOnSave": false,
+  "sort-imports.on-save": false
 }
