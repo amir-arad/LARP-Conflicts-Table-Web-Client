@@ -15,19 +15,18 @@
         - [x] Create basic RTDB interaction methods @done(25-02-05 00:30)
         - [x] Add configuration to `src/config.tsx` @done(25-02-05 00:30)
 
-    ### Story 1.3: Real-time Types and Context (2)
+    ### Story 1.3: Collaboration Types and Context (2)
 
-        - [x] Create `src/types/realtime.ts` @done(25-02-06 13:46)
+        - [x] Create collaboration types in `src/lib/collaboration.ts` @done(25-02-06 13:46)
         - [x] Define Firebase schema types @done(25-02-06 13:46)
-        - [x] Create `src/contexts/RealtimeContext.tsx` @done(25-02-06 13:46)
+        - [x] Create `src/contexts/CollaborationContext.tsx` @done(25-02-06 13:46)
         - [x] Implement basic connection state management @done(25-02-06 13:46)
 
 ## Epic 2: Real-time Core Features
 
     ### Story 2.1: Presence System Base (5)
 
-        - [ ] Create `src/hooks/useRealtimeSync.ts`
-        - [ ] Implement user presence registration
+        - [ ] Implement user presence registration in CollaborationContext
         - [ ] Add presence heartbeat mechanism
         - [ ] Implement auto-disconnect cleanup
         - [ ] Add presence subscription handlers
@@ -35,7 +34,7 @@
 
     ### Story 2.2: Cell Locking Mechanism (5)
 
-        - [ ] Extend `useRealtimeSync` with lock management
+        - [ ] Extend CollaborationContext with lock management
         - [ ] Implement lock acquisition logic
         - [ ] Add TTL-based lock expiration
         - [ ] Create lock validation utilities

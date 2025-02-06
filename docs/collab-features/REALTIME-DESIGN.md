@@ -149,22 +149,23 @@ interface RealtimeState {
 
 ### Core Files
 
-- `src/hooks/useRealtimeSync.ts` (new)
+- `src/contexts/CollaborationContext.tsx` (new)
 
-  - Firebase RTDB connection management
-  - Presence and lock state hooks
+  - Firebase connection state management
+  - Collaboration state provider
+  - Presence and lock state management
   - Real-time event subscriptions
 
-- `src/hooks/useConflictsTable.ts` (modify)
+- `src/lib/collaboration.ts` (new)
 
-  - Integration with real-time locks
+  - Collaboration types and interfaces
+  - State management types
+  - Real-time data structures
+
+- `src/hooks/useConflictsTable.ts` (modify)
+  - Integration with collaboration context
   - Optimistic updates
   - Sheet data synchronization
-
-- `src/contexts/RealtimeContext.tsx` (new)
-  - Firebase connection state
-  - User presence information
-  - Global real-time state
 
 ### Components
 
@@ -186,13 +187,6 @@ interface RealtimeState {
   - Real-time feature flags
   - Timing constants
 
-### Types
-
-- `src/types/realtime.ts` (new)
-  - Firebase schema types
-  - Presence interfaces
-  - Lock interfaces
-
 ### Utils
 
 - `src/lib/firebase.ts` (new)
@@ -203,8 +197,8 @@ interface RealtimeState {
 ## Implementation Strategy
 
 1. Add Firebase configuration
-2. Implement RealtimeContext
-3. Create useRealtimeSync hook
+2. Implement CollaborationContext
+3. Create collaboration types and utilities
 4. Modify existing table components
 5. Integrate presence system
 6. Add lock mechanism
