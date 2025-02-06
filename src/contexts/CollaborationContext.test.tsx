@@ -4,7 +4,11 @@ import {
 } from "./CollaborationContext";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { connectionManager, realtimeDB } from "../lib/firebase";
+import {
+  connectionManager,
+  realtimeDB,
+  setupDisconnectCleanup,
+} from "../lib/firebase";
 
 import { AuthProvider } from "./AuthContext";
 import { ReactNode } from "react";
@@ -26,6 +30,12 @@ vi.mock("../lib/firebase", () => ({
       subscribeToCellLocks: vi.fn(() => vi.fn()),
     },
   },
+  setupDisconnectCleanup: vi.fn(() => Promise.resolve()),
+  getDatabaseRef: vi.fn(() => ({
+    // Mock DatabaseReference object
+    key: "mock-key",
+    path: "mock-path",
+  })),
 }));
 
 // Mock Google Auth
@@ -215,7 +225,7 @@ describe("CollaborationContext", () => {
     await act(async () => {
       await result.current.registerPresence(presenceData);
     });
-    cleanup.mockImplementationOnce(() => {  
+    cleanup.mockImplementationOnce(() => {
       throw new Error("Cleanup failed");
     });
     await expect(async () => {
@@ -240,6 +250,27 @@ describe("CollaborationContext", () => {
     expect(realtimeDB.locks.subscribeToCellLocks).toHaveBeenCalledWith(
       "test-sheet",
       expect.any(Function)
+    );
+  });
+
+  it("should setup auto-disconnect cleanup", async () => {
+    const { result } = renderHook(() => useCollaboration("test-sheet"), {
+      wrapper,
+    });
+
+    const presenceData = {
+      name: "Test User",
+      photoUrl: "test-photo.jpg",
+      lastActive: Date.now(),
+    };
+
+    await act(async () => {
+      await result.current.registerPresence(presenceData);
+    });
+
+    expect(setupDisconnectCleanup).toHaveBeenCalledWith(
+      expect.any(Object),
+      null
     );
   });
 });

@@ -28,7 +28,7 @@
 
         - [x] Implement user presence registration in CollaborationContext @done(25-02-06 16:40)
         - [x] Add presence heartbeat mechanism @done(25-02-06 16:52)
-        - [ ] Implement auto-disconnect cleanup
+        - [x] Implement auto-disconnect cleanup @done(25-02-06 23:35)
         - [ ] Add presence subscription handlers
         - [ ] Unit tests for presence logic
 

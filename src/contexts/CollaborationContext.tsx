@@ -10,7 +10,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { connectionManager, realtimeDB } from "../lib/firebase";
+import { connectionManager, realtimeDB, setupDisconnectCleanup, getDatabaseRef } from "../lib/firebase";
 
 import { useAuth } from "./AuthContext";
 
@@ -93,6 +93,12 @@ export function CollaborationProvider({
     try {
       // Use a stable ID derived from the access token
       const userId = `user-${btoa(access_token).slice(0, 8)}`;
+      const presenceRef = getDatabaseRef(`sheets/${currentNamespace}/presence/${userId}`);
+      if (!presenceRef) {
+        throw new Error("Failed to get presence reference");
+      }
+      await setupDisconnectCleanup(presenceRef, null);
+
       const heartbeatCleanup = connectionManager.setupPresenceHeartbeat(
         currentNamespace,
         userId,
