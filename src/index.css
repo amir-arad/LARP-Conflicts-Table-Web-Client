@@ -34,7 +34,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
   :root[dir="rtl"] {
     --font-sans: "Assistant", "Rubik", system-ui, sans-serif;
@@ -64,36 +64,36 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
   * {
     border: hsl(var(--border));
   }
-  
+
   body {
     font-feature-settings: "rlig" 1, "calt" 1;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 
-    [dir="rtl"] {
-      .text-start {
-        text-align: right;
-      }
-      
-      .text-end {
-        text-align: left;
-      }
+  [dir="rtl"] {
+    .text-start {
+      text-align: right;
     }
-  
-    .bidi-auto {
-      unicode-bidi: plaintext;
+
+    .text-end {
+      text-align: left;
     }
-  
-    [dir="rtl"] .hebrew-numbers {
-      direction: ltr;
-      display: inline-block;
-    }
+  }
+
+  .bidi-auto {
+    unicode-bidi: plaintext;
+  }
+
+  [dir="rtl"] .hebrew-numbers {
+    direction: ltr;
+    display: inline-block;
+  }
 }
 
 @layer components {
@@ -123,7 +123,7 @@
       unicode-bidi: embed;
     }
   }
-  
+
   /* Table RTL specifics */
   [dir="rtl"] table {
     text-align: right;
