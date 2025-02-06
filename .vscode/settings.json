@@ -9,5 +9,23 @@
     "html": "html",
     "javascript": "javascript",
     "css": "css"
-  }
+  },
+  "todo.file.defaultContent": "Todo:  [ ] Item",
+  "todo.symbols.box": "- [ ]",
+  "todo.symbols.cancelled": "- [-]",
+  "todo.symbols.done": "- [x]",
+  "todo.file.name": "*.todo",
+  "todo.file.include": [
+    "**/TODO",
+    "**/TODOS",
+    "**/*.TODO",
+    "**/*.TODOS",
+    "**/*.todo",
+    "**/*.todos",
+    "**/*.task",
+    "**/*.tasks",
+    "**/*.taskpaper",
+    "**/todolist.txt",
+    "**/*.todo.md"
+  ]
 }
