@@ -27,7 +27,7 @@
     ### Story 2.1: Presence System Base (5)
 
         - [x] Implement user presence registration in CollaborationContext @done(25-02-06 16:40)
-        - [ ] Add presence heartbeat mechanism
+        - [x] Add presence heartbeat mechanism @done(25-02-06 16:52)
         - [ ] Implement auto-disconnect cleanup
         - [ ] Add presence subscription handlers
         - [ ] Unit tests for presence logic

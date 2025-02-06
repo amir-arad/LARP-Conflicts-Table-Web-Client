@@ -63,10 +63,17 @@ describe("CollaborationContext", () => {
       await result.current.registerPresence(presenceData);
     });
 
+    const expectedUserId = `user-${btoa("mock-token").slice(0, 8)}`;
     expect(connectionManager.setupPresenceHeartbeat).toHaveBeenCalledWith(
       "test-sheet",
-      expect.any(String),
-      presenceData
+      expectedUserId,
+      presenceData,
+      {
+        interval: 30000,
+        maxRetries: 3,
+        retryDelay: 5000,
+      },
+      expect.any(Function)
     );
   });
 
@@ -84,6 +91,50 @@ describe("CollaborationContext", () => {
         await result.current.registerPresence(presenceData);
       })
     ).rejects.toThrow("No active namespace");
+  });
+
+  it("should handle heartbeat error", async () => {
+    const { result } = renderHook(() => useCollaboration("test-sheet"), {
+      wrapper,
+    });
+
+    const presenceData = {
+      name: "Test User",
+      photoUrl: "test-photo.jpg",
+      lastActive: Date.now(),
+    };
+
+    const onError = vi.fn();
+    let heartbeatErrorCallback: ((error: any) => void) | undefined;
+
+    (
+      connectionManager.setupPresenceHeartbeat as ReturnType<typeof vi.fn>
+    ).mockImplementationOnce((_, __, ___, ____, onError) => {
+      heartbeatErrorCallback = onError;
+      return vi.fn();
+    });
+
+    await act(async () => {
+      await result.current.registerPresence(presenceData, { onError });
+    });
+
+    const heartbeatError = {
+      code: "HEARTBEAT_FAILED",
+      message: "Failed to update presence",
+      details: new Error("Network error"),
+      timestamp: Date.now(),
+      retryCount: 1,
+    };
+
+    act(() => {
+      heartbeatErrorCallback?.(heartbeatError);
+    });
+
+    expect(onError).toHaveBeenCalledWith({
+      code: "HEARTBEAT_FAILED",
+      message: heartbeatError.message,
+      details: heartbeatError.details,
+    });
   });
 
   it("should handle presence registration error", async () => {
@@ -146,9 +197,7 @@ describe("CollaborationContext", () => {
   });
 
   it("should handle cleanup error", async () => {
-    const cleanup = vi.fn(() => {
-      throw new Error("Cleanup failed");
-    });
+    const cleanup = vi.fn();
     (
       connectionManager.setupPresenceHeartbeat as ReturnType<typeof vi.fn>
     ).mockReturnValueOnce(cleanup);
@@ -166,12 +215,14 @@ describe("CollaborationContext", () => {
     await act(async () => {
       await result.current.registerPresence(presenceData);
     });
-
-    await expect(
-      act(async () => {
+    cleanup.mockImplementationOnce(() => {  
+      throw new Error("Cleanup failed");
+    });
+    await expect(async () => {
+      await act(async () => {
         await result.current.unregisterPresence();
-      })
-    ).rejects.toThrow("Failed to cleanup presence");
+      });
+    }).rejects.toThrow("Failed to cleanup presence");
   });
 
   it("should subscribe to presence updates", () => {

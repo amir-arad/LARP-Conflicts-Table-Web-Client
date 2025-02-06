@@ -1,4 +1,18 @@
 export type timestamp = number;
+
+export type HeartbeatError = {
+  code: 'HEARTBEAT_FAILED';
+  message: string;
+  details?: unknown;
+  timestamp: number;
+  retryCount: number;
+};
+
+export type HeartbeatConfig = {
+  interval: number; // milliseconds
+  maxRetries: number;
+  retryDelay: number; // milliseconds
+};
 export type LockInfo = {
   userId: string;
   acquired: timestamp;

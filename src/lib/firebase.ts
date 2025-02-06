@@ -1,5 +1,7 @@
 import {
   CollaborationState,
+  HeartbeatConfig,
+  HeartbeatError,
   LockInfo,
   LocksState,
   Presence,
@@ -107,25 +109,64 @@ export const connectionManager = {
   setupPresenceHeartbeat: (
     sheetId: string,
     userId: string,
-    presenceData: Partial<Presence>
+    presenceData: Partial<Presence>,
+    config: HeartbeatConfig = {
+      interval: 30000,
+      maxRetries: 3,
+      retryDelay: 5000,
+    },
+    onError?: (error: HeartbeatError) => void
   ) => {
     const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
     if (!presenceRef) return;
 
-    const updatePresence = () => {
-      set(presenceRef, {
-        ...presenceData,
-        lastActive: serverTimestamp(),
-      });
+    let retryCount = 0;
+    let retryTimeout: NodeJS.Timeout | null = null;
+
+    const updatePresence = async () => {
+      try {
+        await set(presenceRef, {
+          ...presenceData,
+          lastActive: serverTimestamp(),
+        });
+        retryCount = 0; // Reset retry count on success
+      } catch (error) {
+        retryCount++;
+        const heartbeatError: HeartbeatError = {
+          code: 'HEARTBEAT_FAILED',
+          message: 'Failed to update presence',
+          details: error,
+          timestamp: Date.now(),
+          retryCount,
+        };
+
+        if (onError) {
+          onError(heartbeatError);
+        }
+
+        // Retry if under max retries
+        if (retryCount <= config.maxRetries) {
+          if (retryTimeout) {
+            clearTimeout(retryTimeout);
+          }
+          retryTimeout = setTimeout(updatePresence, config.retryDelay);
+        }
+      }
     };
 
+    // Initial presence update
     updatePresence();
 
-    const heartbeatInterval = setInterval(updatePresence, 30000);
+    // Setup regular heartbeat
+    const heartbeatInterval = setInterval(updatePresence, config.interval);
 
+    // Setup disconnect cleanup
     setupDisconnectCleanup(presenceRef, null);
 
     return () => {
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
       clearInterval(heartbeatInterval);
       set(presenceRef, null);
     };

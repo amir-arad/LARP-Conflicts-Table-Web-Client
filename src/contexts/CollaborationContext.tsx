@@ -1,4 +1,8 @@
-import type { CollaborationState, Presence } from "../lib/collaboration";
+import type {
+  CollaborationState,
+  HeartbeatConfig,
+  Presence,
+} from "../lib/collaboration";
 import {
   ReactNode,
   createContext,
@@ -11,9 +15,15 @@ import { connectionManager, realtimeDB } from "../lib/firebase";
 import { useAuth } from "./GoogleAuthContext";
 
 type PresenceError = {
-  code: "REGISTRATION_FAILED" | "CLEANUP_FAILED";
+  code: "REGISTRATION_FAILED" | "CLEANUP_FAILED" | "HEARTBEAT_FAILED";
   message: string;
   details?: unknown;
+};
+
+const DEFAULT_HEARTBEAT_CONFIG: HeartbeatConfig = {
+  interval: 30000, // 30 seconds
+  maxRetries: 3,
+  retryDelay: 5000, // 5 seconds
 };
 
 type PresenceRegistrationOptions = {
@@ -29,6 +39,7 @@ interface CollaborationContextType {
   ) => Promise<void>;
   unregisterPresence: () => Promise<void>;
   setCurrentNamespace: (namespace: string | null) => void;
+  cleanupFn: (() => void) | null;
 }
 
 const CollaborationContext = createContext<CollaborationContextType | null>(
@@ -55,6 +66,8 @@ export function CollaborationProvider({
     });
   }, []);
 
+  const { access_token } = useAuth();
+
   const registerPresence = async (
     presenceData: Presence,
     options?: PresenceRegistrationOptions
@@ -68,14 +81,33 @@ export function CollaborationProvider({
       throw error;
     }
 
+    if (!access_token) {
+      const error: PresenceError = {
+        code: "REGISTRATION_FAILED",
+        message: "User not authenticated",
+      };
+      options?.onError?.(error);
+      throw error;
+    }
+
     try {
-      const userId = `user-${Math.random().toString(36).substr(2, 9)}`;
-      const cleanup = connectionManager.setupPresenceHeartbeat(
+      // Use a stable ID derived from the access token
+      const userId = `user-${btoa(access_token).slice(0, 8)}`;
+      const heartbeatCleanup = connectionManager.setupPresenceHeartbeat(
         currentNamespace,
         userId,
-        presenceData
+        presenceData,
+        DEFAULT_HEARTBEAT_CONFIG,
+        (error) => {
+          const presenceError: PresenceError = {
+            code: "HEARTBEAT_FAILED",
+            message: error.message,
+            details: error.details,
+          };
+          options?.onError?.(presenceError);
+        }
       );
-      setCleanupFn(() => cleanup);
+      setCleanupFn(() => heartbeatCleanup);
     } catch (error) {
       const presenceError: PresenceError = {
         code: "REGISTRATION_FAILED",
@@ -103,12 +135,13 @@ export function CollaborationProvider({
     }
   };
 
-  const value = {
+  const value: CollaborationContextType = {
     isConnected,
     collaborationStates,
     registerPresence,
     unregisterPresence,
     setCurrentNamespace,
+    cleanupFn,
   };
 
   return (
@@ -126,8 +159,14 @@ export function useCollaboration(namespace: string) {
     );
   }
 
-  const { isConnected, setCurrentNamespace } = context;
-  const [state, setState] = useState<CollaborationState>({
+  const {
+    isConnected,
+    setCurrentNamespace,
+    unregisterPresence,
+    cleanupFn,
+    registerPresence,
+  } = context;
+  const [{ presence, locks }, setState] = useState<CollaborationState>({
     presence: {},
     locks: {},
   });
@@ -150,18 +189,21 @@ export function useCollaboration(namespace: string) {
     );
 
     return () => {
+      if (cleanupFn) {
+        cleanupFn();
+      }
       setCurrentNamespace(null);
       unsubPresence();
       unsubLocks();
     };
-  }, [namespace, access_token, isReady]);
+  }, [namespace, access_token, isReady, cleanupFn, setCurrentNamespace]);
 
   return {
     isConnected,
-    presence: state.presence,
-    locks: state.locks,
+    presence,
+    locks,
     namespace,
-    registerPresence: context.registerPresence,
-    unregisterPresence: context.unregisterPresence,
+    registerPresence,
+    unregisterPresence,
   };
 }
