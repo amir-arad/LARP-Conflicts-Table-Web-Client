@@ -1,4 +1,10 @@
 import {
+  CollaborationState,
+  LockInfo,
+  LocksState,
+  Presence,
+} from "./collaboration";
+import {
   Database,
   DatabaseReference,
   get,
@@ -18,31 +24,6 @@ import {
 } from "firebase/database";
 import { FirebaseApp, initializeApp } from "firebase/app";
 
-type timestamp = number;
-type LockInfo = {
-  userId: string;
-  acquired: timestamp;
-};
-
-type Presence = {
-  name: string;
-  photoUrl: string;
-  lastActive: timestamp;
-  activeCell?: string;
-};
-
-interface RealtimeState {
-  sheets: {
-    [sheetId: string]: {
-      presence: {
-        [userId: string]: Presence;
-      };
-      locks: {
-        [cellId: string]: LockInfo;
-      };
-    };
-  };
-}
 let firebaseApp: FirebaseApp | null = null;
 let database: Database | null = null;
 
@@ -126,7 +107,7 @@ export const connectionManager = {
   setupPresenceHeartbeat: (
     sheetId: string,
     userId: string,
-    presenceData: Partial<RealtimeState["sheets"][string]["presence"][string]>
+    presenceData: Partial<Presence>
   ) => {
     const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
     if (!presenceRef) return;
@@ -171,9 +152,7 @@ export const realtimeDB = {
     /**
      * Get all real-time data for a sheet
      */
-    getData: async (
-      sheetId: string
-    ): Promise<RealtimeState["sheets"][string] | null> => {
+    getData: async (sheetId: string): Promise<CollaborationState | null> => {
       const sheetRef = getDatabaseRef(getSheetPath(sheetId));
       if (!sheetRef) return null;
 
@@ -186,7 +165,7 @@ export const realtimeDB = {
      */
     subscribe: (
       sheetId: string,
-      callback: (data: RealtimeState["sheets"][string] | null) => void
+      callback: (data: CollaborationState | null) => void
     ): (() => void) => {
       return subscribeToPath(getSheetPath(sheetId), callback);
     },
@@ -201,7 +180,7 @@ export const realtimeDB = {
      */
     getActiveUsers: async (
       sheetId: string
-    ): Promise<RealtimeState["sheets"][string]["presence"]> => {
+    ): Promise<CollaborationState["presence"]> => {
       const presencePath = `sheets/${sheetId}/presence`;
       const presenceRef = getDatabaseRef(presencePath);
       if (!presenceRef) return {};
@@ -216,7 +195,7 @@ export const realtimeDB = {
     updateUserPresence: async (
       sheetId: string,
       userId: string,
-      data: Partial<RealtimeState["sheets"][string]["presence"][string]>
+      data: Partial<CollaborationState["presence"][string]>
     ): Promise<void> => {
       const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
       if (!presenceRef) return;
@@ -232,7 +211,7 @@ export const realtimeDB = {
      */
     subscribeToPresence: (
       sheetId: string,
-      callback: (presence: RealtimeState["sheets"][string]["presence"]) => void
+      callback: (presence: CollaborationState["presence"]) => void
     ): (() => void) => {
       const presencePath = `sheets/${sheetId}/presence`;
       return subscribeToPath(presencePath, callback);
@@ -325,7 +304,7 @@ export const realtimeDB = {
      */
     subscribeToCellLocks: (
       sheetId: string,
-      callback: (locks: RealtimeState["sheets"][string]["locks"]) => void
+      callback: (locks: LocksState) => void
     ): (() => void) => {
       const locksPath = `sheets/${sheetId}/locks`;
       return subscribeToPath(locksPath, callback);

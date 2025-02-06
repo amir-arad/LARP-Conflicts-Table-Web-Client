@@ -4,17 +4,25 @@ import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
 import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
+import { useAuth } from "../contexts/GoogleAuthContext";
+import { useCollaboration } from "../contexts/CollaborationContext";
 import { useConflictsTable } from "../hooks/useConflictsTable";
 import { useFlags } from "../hooks/useFlags";
 import { useTranslations } from "../hooks/useTranslations";
 
-type ConflictsTableToolProps = {
-  token: string;
+interface ConflictsTableToolProps {
   sheetId: string;
-};
+}
 
-const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
+const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
+  const { access_token } = useAuth();
+  useCollaboration(sheetId);
   const { t } = useTranslations();
+
+  if (!access_token) {
+    return <div>{t("app.loading")}</div>;
+  }
+
   const [roleFilters, toggleRoleFilter] = useFlags({
     namespace: `${sheetId}-roleFilters`,
   });
@@ -36,13 +44,17 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     updateMotivation,
     updateConflictName,
     updateRoleName,
-  } = useConflictsTable({ sheetId, token, gapi: window.gapi });
+  } = useConflictsTable({
+    sheetId: sheetId,
+    token: access_token,
+    gapi: window.gapi,
+  });
 
   useEffect(() => {
-    if (token && sheetId) {
+    if (access_token && sheetId) {
       loadData();
     }
-  }, [token, sheetId, loadData]);
+  }, [access_token, sheetId, loadData]);
 
   const handleAddConflict = useCallback(
     () => addConflict(t("table.newConflict")),
