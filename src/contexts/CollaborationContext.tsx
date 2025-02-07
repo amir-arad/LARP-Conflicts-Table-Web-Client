@@ -1,16 +1,27 @@
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type {
   CollaborationState,
   HeartbeatConfig,
   Presence,
+  PresenceEvent,
+  PresenceEventType,
+  PresenceState,
+  PresenceSubscriber,
 } from "../lib/collaboration";
 import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { connectionManager, realtimeDB, setupDisconnectCleanup, getDatabaseRef } from "../lib/firebase";
+  connectionManager,
+  getDatabaseRef,
+  realtimeDB,
+  setupDisconnectCleanup,
+} from "../lib/firebase";
 
 import { useAuth } from "./AuthContext";
 
@@ -40,6 +51,12 @@ interface CollaborationContextType {
   unregisterPresence: () => Promise<void>;
   setCurrentNamespace: (namespace: string | null) => void;
   cleanupFn: (() => void) | null;
+  subscribeToPresence: (
+    subscriber: PresenceSubscriber,
+    eventTypes?: PresenceEventType[]
+  ) => () => void;
+  previousPresence: PresenceState;
+  handlePresenceChange: (newPresence: PresenceState) => void;
 }
 
 const CollaborationContext = createContext<CollaborationContextType | null>(
@@ -59,6 +76,17 @@ export function CollaborationProvider({
   );
   const [currentNamespace, setCurrentNamespace] = useState<string | null>(null);
   const [cleanupFn, setCleanupFn] = useState<(() => void) | null>(null);
+  const presenceSubscribers = useRef<Set<PresenceSubscriber>>(new Set());
+  const [previousPresence, setPreviousPresence] = useState<PresenceState>({});
+
+  useEffect(() => {
+    return () => {
+      presenceSubscribers.current.clear();
+      if (cleanupFn) {
+        cleanupFn();
+      }
+    };
+  }, [cleanupFn]);
 
   useEffect(() => {
     return connectionManager.monitorConnection((connected) => {
@@ -93,7 +121,9 @@ export function CollaborationProvider({
     try {
       // Use a stable ID derived from the access token
       const userId = `user-${btoa(access_token).slice(0, 8)}`;
-      const presenceRef = getDatabaseRef(`sheets/${currentNamespace}/presence/${userId}`);
+      const presenceRef = getDatabaseRef(
+        `sheets/${currentNamespace}/presence/${userId}`
+      );
       if (!presenceRef) {
         throw new Error("Failed to get presence reference");
       }
@@ -141,6 +171,82 @@ export function CollaborationProvider({
     }
   };
 
+  const handleError = useCallback(
+    (error: PresenceError, options?: PresenceRegistrationOptions) => {
+      options?.onError?.(error);
+      console.error("[Collaboration Error]:", error);
+    },
+    []
+  );
+
+  const emitPresenceEvent = useCallback((event: PresenceEvent) => {
+    presenceSubscribers.current.forEach((subscriber) => {
+      try {
+        subscriber(event);
+      } catch (error) {
+        console.error("Error in presence subscriber:", error);
+      }
+    });
+  }, []);
+
+  const handlePresenceChange = useCallback(
+    (newPresence: PresenceState) => {
+      const timestamp = Date.now();
+
+      // Compare with previous state to determine events
+      Object.entries(newPresence).forEach(([userId, presence]) => {
+        if (!previousPresence[userId]) {
+          emitPresenceEvent({
+            type: "joined",
+            userId,
+            presence,
+            timestamp,
+          });
+        } else if (
+          JSON.stringify(previousPresence[userId]) !== JSON.stringify(presence)
+        ) {
+          emitPresenceEvent({
+            type: "updated",
+            userId,
+            presence,
+            timestamp,
+          });
+        }
+      });
+
+      // Check for users who left
+      Object.keys(previousPresence).forEach((userId) => {
+        if (!newPresence[userId]) {
+          emitPresenceEvent({
+            type: "left",
+            userId,
+            presence: previousPresence[userId],
+            timestamp,
+          });
+        }
+      });
+
+      setPreviousPresence(newPresence);
+    },
+    [previousPresence, emitPresenceEvent]
+  );
+
+  const subscribeToPresence = useCallback(
+    (subscriber: PresenceSubscriber, eventTypes?: PresenceEventType[]) => {
+      const wrappedSubscriber: PresenceSubscriber = (event) => {
+        if (!eventTypes || eventTypes.includes(event.type)) {
+          subscriber(event);
+        }
+      };
+
+      presenceSubscribers.current.add(wrappedSubscriber);
+      return () => {
+        presenceSubscribers.current.delete(wrappedSubscriber);
+      };
+    },
+    []
+  );
+
   const value: CollaborationContextType = {
     isConnected,
     collaborationStates,
@@ -148,6 +254,9 @@ export function CollaborationProvider({
     unregisterPresence,
     setCurrentNamespace,
     cleanupFn,
+    subscribeToPresence,
+    previousPresence,
+    handlePresenceChange,
   };
 
   return (
@@ -171,6 +280,7 @@ export function useCollaboration(namespace: string) {
     unregisterPresence,
     cleanupFn,
     registerPresence,
+    subscribeToPresence,
   } = context;
   const [{ presence, locks }, setState] = useState<CollaborationState>({
     presence: {},
@@ -186,7 +296,11 @@ export function useCollaboration(namespace: string) {
 
     const unsubPresence = realtimeDB.presence.subscribeToPresence(
       namespace,
-      (data) => setState((prev) => ({ ...prev, presence: data || {} }))
+      (data) => {
+        const presenceData = data || {};
+        setState((prev) => ({ ...prev, presence: presenceData }));
+        context.handlePresenceChange(presenceData);
+      }
     );
 
     const unsubLocks = realtimeDB.locks.subscribeToCellLocks(
@@ -202,7 +316,14 @@ export function useCollaboration(namespace: string) {
       unsubPresence();
       unsubLocks();
     };
-  }, [namespace, access_token, isReady, cleanupFn, setCurrentNamespace]);
+  }, [
+    namespace,
+    access_token,
+    isReady,
+    cleanupFn,
+    setCurrentNamespace,
+    context.handlePresenceChange,
+  ]);
 
   return {
     isConnected,
@@ -211,5 +332,6 @@ export function useCollaboration(namespace: string) {
     namespace,
     registerPresence,
     unregisterPresence,
+    subscribeToPresence,
   };
 }

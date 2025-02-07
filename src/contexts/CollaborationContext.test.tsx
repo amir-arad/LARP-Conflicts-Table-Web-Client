@@ -1,7 +1,3 @@
-import {
-  CollaborationProvider,
-  useCollaboration,
-} from "./CollaborationContext";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -9,9 +5,13 @@ import {
   realtimeDB,
   setupDisconnectCleanup,
 } from "../lib/firebase";
+import {
+  CollaborationProvider,
+  useCollaboration,
+} from "./CollaborationContext";
 
-import { AuthProvider } from "./AuthContext";
 import { ReactNode } from "react";
+import { AuthProvider } from "./AuthContext";
 
 // Mock Firebase modules
 vi.mock("../lib/firebase", () => ({
@@ -233,6 +233,243 @@ describe("CollaborationContext", () => {
         await result.current.unregisterPresence();
       });
     }).rejects.toThrow("Failed to cleanup presence");
+  });
+
+  describe("Presence Subscription Handlers", () => {
+    let presenceCallback: (data: any) => void;
+
+    beforeEach(() => {
+      (
+        realtimeDB.presence.subscribeToPresence as ReturnType<typeof vi.fn>
+      ).mockImplementation((_, callback) => {
+        presenceCallback = callback;
+        return vi.fn();
+      });
+    });
+
+    it("should emit 'joined' event when a new user joins", async () => {
+      const { result } = renderHook(() => useCollaboration("test-sheet"), {
+        wrapper,
+      });
+      const onPresenceEvent = vi.fn();
+
+      // Subscribe to presence events
+      act(() => {
+        result.current.subscribeToPresence(onPresenceEvent, ["joined"]);
+      });
+
+      // Simulate a new user joining
+      const newUser = {
+        name: "New User",
+        photoUrl: "new-photo.jpg",
+        lastActive: Date.now(),
+      };
+
+      act(() => {
+        presenceCallback({ "user-123": newUser });
+      });
+
+      expect(onPresenceEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "joined",
+          userId: "user-123",
+          presence: newUser,
+          timestamp: expect.any(Number),
+        })
+      );
+    });
+
+    it("should emit 'left' event when a user leaves", async () => {
+      const { result } = renderHook(() => useCollaboration("test-sheet"), {
+        wrapper,
+      });
+      const onPresenceEvent = vi.fn();
+
+      // Subscribe to presence events
+      act(() => {
+        result.current.subscribeToPresence(onPresenceEvent, ["left"]);
+      });
+
+      // Simulate initial presence
+      const user = {
+        name: "Test User",
+        photoUrl: "test-photo.jpg",
+        lastActive: Date.now(),
+      };
+
+      act(() => {
+        presenceCallback({ "user-123": user });
+      });
+
+      // Simulate user leaving
+      act(() => {
+        presenceCallback({});
+      });
+
+      expect(onPresenceEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "left",
+          userId: "user-123",
+          presence: user,
+          timestamp: expect.any(Number),
+        })
+      );
+    });
+
+    it("should emit 'updated' event when user presence changes", async () => {
+      const { result } = renderHook(() => useCollaboration("test-sheet"), {
+        wrapper,
+      });
+      const onPresenceEvent = vi.fn();
+
+      // Subscribe to presence events
+      act(() => {
+        result.current.subscribeToPresence(onPresenceEvent, ["updated"]);
+      });
+
+      // Simulate initial presence
+      const initialUser = {
+        name: "Test User",
+        photoUrl: "test-photo.jpg",
+        lastActive: Date.now(),
+      };
+
+      act(() => {
+        presenceCallback({ "user-123": initialUser });
+      });
+
+      // Simulate user update
+      const updatedUser = {
+        ...initialUser,
+        activeCell: "A1",
+      };
+
+      act(() => {
+        presenceCallback({ "user-123": updatedUser });
+      });
+
+      expect(onPresenceEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "updated",
+          userId: "user-123",
+          presence: updatedUser,
+          timestamp: expect.any(Number),
+        })
+      );
+    });
+
+    it("should filter events based on subscribed types", async () => {
+      const { result } = renderHook(() => useCollaboration("test-sheet"), {
+        wrapper,
+      });
+      const onPresenceEvent = vi.fn();
+
+      // Subscribe only to 'joined' events
+      act(() => {
+        result.current.subscribeToPresence(onPresenceEvent, ["joined"]);
+      });
+
+      const user = {
+        name: "Test User",
+        photoUrl: "test-photo.jpg",
+        lastActive: Date.now(),
+      };
+
+      // Simulate join
+      act(() => {
+        presenceCallback({ "user-123": user });
+      });
+
+      // Simulate update
+      act(() => {
+        presenceCallback({ "user-123": { ...user, activeCell: "A1" } });
+      });
+
+      // Simulate leave
+      act(() => {
+        presenceCallback({});
+      });
+
+      // Should only receive the 'joined' event
+      expect(onPresenceEvent).toHaveBeenCalledTimes(1);
+      expect(onPresenceEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: "joined",
+        })
+      );
+    });
+
+    it("should handle multiple subscribers", async () => {
+      const { result } = renderHook(() => useCollaboration("test-sheet"), {
+        wrapper,
+      });
+      const onJoinedEvent = vi.fn();
+      const onLeftEvent = vi.fn();
+
+      // Subscribe to different event types
+      act(() => {
+        result.current.subscribeToPresence(onJoinedEvent, ["joined"]);
+        result.current.subscribeToPresence(onLeftEvent, ["left"]);
+      });
+
+      const user = {
+        name: "Test User",
+        photoUrl: "test-photo.jpg",
+        lastActive: Date.now(),
+      };
+
+      // Simulate join
+      act(() => {
+        presenceCallback({ "user-123": user });
+      });
+
+      // Simulate leave
+      act(() => {
+        presenceCallback({});
+      });
+
+      expect(onJoinedEvent).toHaveBeenCalledTimes(1);
+      expect(onLeftEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it("should cleanup subscribers on unsubscribe", async () => {
+      const { result } = renderHook(() => useCollaboration("test-sheet"), {
+        wrapper,
+      });
+      const onPresenceEvent = vi.fn();
+
+      // Subscribe and store unsubscribe function
+      let unsubscribe: (() => void) | undefined;
+      act(() => {
+        unsubscribe = result.current.subscribeToPresence(onPresenceEvent);
+      });
+
+      const user = {
+        name: "Test User",
+        photoUrl: "test-photo.jpg",
+        lastActive: Date.now(),
+      };
+
+      // Simulate event before unsubscribe
+      act(() => {
+        presenceCallback({ "user-123": user });
+      });
+
+      expect(onPresenceEvent).toHaveBeenCalledTimes(1);
+
+      // Unsubscribe
+      act(() => {
+        unsubscribe?.();
+      });
+
+      // Simulate event after unsubscribe
+      act(() => {
+        presenceCallback({ "user-123": { ...user, activeCell: "A1" } });
+      });
+
+      // Should not receive events after unsubscribe
+      expect(onPresenceEvent).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("should subscribe to presence updates", () => {

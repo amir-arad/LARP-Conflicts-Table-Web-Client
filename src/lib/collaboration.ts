@@ -34,6 +34,17 @@ export type CollaborationState = {
   locks: LocksState;
 };
 
+export type PresenceEventType = 'joined' | 'left' | 'updated';
+
+export type PresenceEvent = {
+  type: PresenceEventType;
+  userId: string;
+  presence: Presence;
+  timestamp: number;
+};
+
+export type PresenceSubscriber = (event: PresenceEvent) => void;
+
 export interface AllCollaborationsState {
   sheets: {
     [sheetId: string]: CollaborationState;
