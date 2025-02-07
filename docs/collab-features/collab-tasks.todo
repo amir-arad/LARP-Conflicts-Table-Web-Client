@@ -32,63 +32,49 @@
         - [x] Add presence subscription handlers @done(25-02-07 01:53)
         - [ ] Unit tests for presence logic
 
-    ### Story 2.2: Cell Locking Mechanism (5)
+    ### Story 2.2: Active Users Display (3)
 
-        - [ ] Extend CollaborationContext with lock management
-        - [ ] Implement lock acquisition logic
-        - [ ] Add TTL-based lock expiration
-        - [ ] Create lock validation utilities
-        - [ ] Add lock release mechanisms
-        - [ ] Unit tests for locking logic
-
-    ### Story 2.3: Cursor Tracking (3)
-
-        - [ ] Add cursor position tracking to presence system
-        - [ ] Implement cursor position updates
-        - [ ] Create cursor position subscription
-        - [ ] Add cleanup on disconnect
-
-## Epic 3: UI Integration
-
-    ### Story 3.1: Presence UI (3)
-
-        - [ ] Add active users list component
-        - [ ] Implement real-time user updates
+        - [ ] Create active users list component
         - [ ] Add user avatars
         - [ ] Style presence indicators
+        - [ ] Implement real-time user updates
+        - [ ] Add presence subscription integration
 
-    ### Story 3.2: Lock UI Integration (5)
+    ### Story 2.3: Cell Editing UI (5)
 
-        - [ ] Modify `table-cell.tsx` for lock states
         - [ ] Add lock state visualizations
-        - [ ] Implement editor information display
         - [ ] Add tooltips for locked cells
-        - [ ] Integrate with existing edit handlers
+        - [ ] Create lock validation utilities
+        - [ ] Implement lock acquisition logic
+        - [ ] Add TTL-based lock expiration
+        - [ ] Add lock release mechanisms
 
-    ### Story 3.3: Cursor UI (3)
+    ### Story 2.4: Live Cursor Indicators (4)
 
         - [ ] Create cursor overlay component
-        - [ ] Implement cursor position rendering
         - [ ] Add user identification to cursors
         - [ ] Style cursor indicators
+        - [ ] Add cursor position tracking to presence system
+        - [ ] Implement cursor position updates
+        - [ ] Add cleanup on disconnect
 
-## Epic 4: Polish & Performance
+## Epic 3: Polish & Performance
 
-    ### Story 4.1: Error Handling (3)
+    ### Story 3.1: Error Handling (3)
 
+        - [ ] Create user-facing error states
         - [ ] Implement connection error handling
         - [ ] Add retry mechanisms
-        - [ ] Create user-facing error states
         - [ ] Add error recovery flows
 
-    ### Story 4.2: Performance Optimization (3)
+    ### Story 3.2: Performance Optimization (3)
 
         - [ ] Optimize presence updates
         - [ ] Add debouncing for cursor updates
         - [ ] Implement connection state recovery
         - [ ] Performance testing
 
-    ### Story 4.3: Edge Cases (2)
+    ### Story 3.3: Edge Cases (2)
 
         - [ ] Handle simultaneous lock requests
         - [ ] Implement lock timeout recovery
