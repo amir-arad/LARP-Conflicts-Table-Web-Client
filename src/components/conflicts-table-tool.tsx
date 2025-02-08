@@ -1,14 +1,14 @@
+import { Filter, Link, Plus } from "lucide-react";
+import { useCallback, useEffect } from "react";
+import { ActiveUsersList } from "./ui/active-users-list";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
-import { ActiveUsersList } from "./ui/active-users-list";
-import { Filter, Link, Plus } from "lucide-react";
-import { useCallback, useEffect } from "react";
 
 import { useAuth } from "../contexts/AuthContext";
-import { usePresence } from "../hooks/usePresence";
 import { useConflictsTable } from "../hooks/useConflictsTable";
 import { useFlags } from "../hooks/useFlags";
+import { usePresence } from "../hooks/usePresence";
 import { useTranslations } from "../hooks/useTranslations";
 
 interface ConflictsTableToolProps {
@@ -59,17 +59,20 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
 
   useEffect(() => {
     if (isReady && access_token && sheetId && firebaseUser) {
-      registerPresence({
-        name: firebaseUser.displayName || 'Anonymous',
-        photoUrl: firebaseUser.photoURL || '',
-        activeCell: null,
-      });
+      registerPresence({ activeCell: null });
 
       return () => {
         unregisterPresence();
       };
     }
-  }, [isReady, access_token, sheetId, firebaseUser, registerPresence, unregisterPresence]);
+  }, [
+    isReady,
+    access_token,
+    sheetId,
+    firebaseUser,
+    registerPresence,
+    unregisterPresence,
+  ]);
 
   const handleAddConflict = useCallback(
     () => addConflict(t("table.newConflict")),
@@ -186,8 +189,14 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
             <table className="min-w-full border-collapse border border-gray-300 [dir='rtl']:text-right">
               <thead>
                 <tr>
-                  <EditableTableCell isHeader content={t("table.header")} />
-                  {filteredRoles.map((role) => (
+                  <EditableTableCell
+                    isHeader
+                    content={t("table.header")}
+                    sheetId={sheetId}
+                    rowIndex={0}
+                    colIndex={0}
+                  />
+                  {filteredRoles.map((role, roleIndex) => (
                     <EditableTableCell
                       key={role.cellRef}
                       isHeader
@@ -197,12 +206,15 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                       }
                       showDelete
                       onDelete={() => removeRole(role.cellRef)}
+                      rowIndex={0}
+                      colIndex={roleIndex + 1}
+                      sheetId={sheetId}
                     />
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredConflicts.map((conflict) => (
+                {filteredConflicts.map((conflict, conflictIndex) => (
                   <tr key={conflict.cellRef}>
                     <EditableTableCell
                       content={conflict.value}
@@ -212,8 +224,11 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                       showDelete
                       onDelete={() => removeConflict(conflict.cellRef)}
                       className="bg-gray-50"
+                      rowIndex={conflictIndex + 1}
+                      colIndex={0}
+                      sheetId={sheetId}
                     />
-                    {filteredRoles.map((role) => {
+                    {filteredRoles.map((role, roleIndex) => {
                       const motivation = conflict.motivations[role.cellRef];
                       return (
                         <MotivationTableCell
@@ -226,6 +241,9 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                               newContent
                             )
                           }
+                          rowIndex={conflictIndex + 1}
+                          colIndex={roleIndex + 1}
+                          sheetId={sheetId}
                         />
                       );
                     })}

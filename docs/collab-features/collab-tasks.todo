@@ -41,8 +41,8 @@
 
     ### Story 2.3: Cell Editing UI (5)
 
-        - [ ] Add lock state visualizations
-        - [ ] Add tooltips for locked cells
+        - [x] Add lock state visualizations @done(25-02-09 00:24)
+        - [x] Add tooltips for locked cells @done(25-02-09 00:24)
         - [ ] Create lock validation utilities
         - [ ] Implement lock acquisition logic
         - [ ] Add TTL-based lock expiration

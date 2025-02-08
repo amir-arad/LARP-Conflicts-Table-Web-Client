@@ -243,6 +243,7 @@ export const realtimeDB = {
 
       await update(presenceRef, {
         ...data,
+        userId, 
         lastActive: serverTimestamp(),
       });
     },

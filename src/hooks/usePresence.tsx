@@ -23,7 +23,7 @@ const DEFAULT_HEARTBEAT_CONFIG: HeartbeatConfig = {
 };
 
 export function usePresence(namespace: string) {
-  const { access_token, isReady } = useAuth();
+  const { access_token, firebaseUser, isReady } = useAuth();
   const presenceSubscribers = useRef<Set<PresenceSubscriber>>(new Set());
   const [presence, setPresence] = useState<PresenceState>({});
   const [locks, setLocks] = useState<LocksState>({});
@@ -100,11 +100,15 @@ export function usePresence(namespace: string) {
   }, [namespace, access_token, isReady, handlePresenceUpdate]);
 
   const registerPresence = useCallback(
-    (presenceData: Omit<Presence, "lastActive">) => {
+    (presenceData: Omit<Presence, "lastActive" | "name" | "photoUrl">) => {
       if (!namespace || !access_token || !userId || !isReady) {
         throw new Error("Cannot register presence without namespace and auth");
       }
-
+      const fullPresence = {
+        ...presenceData,
+        name: firebaseUser?.displayName || "Anonymous",
+        photoUrl: firebaseUser?.photoURL || "",
+      }
       const presenceRef = getDatabaseRef(
         `sheets/${namespace}/presence/${userId}`
       );
@@ -117,7 +121,7 @@ export function usePresence(namespace: string) {
           realtimeDB.presence.updateUserPresence(
             namespace,
             userId,
-            presenceData
+            fullPresence
           )
         )
         .catch((error) => {
@@ -126,7 +130,7 @@ export function usePresence(namespace: string) {
       return connectionManager.setupPresenceHeartbeat(
         namespace,
         userId,
-        presenceData,
+        fullPresence,
         DEFAULT_HEARTBEAT_CONFIG
       );
     },
