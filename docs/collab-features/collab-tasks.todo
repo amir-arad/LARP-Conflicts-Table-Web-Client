@@ -30,7 +30,6 @@
         - [x] Add presence heartbeat mechanism @done(25-02-06 16:52)
         - [x] Implement auto-disconnect cleanup @done(25-02-06 23:35)
         - [x] Add presence subscription handlers @done(25-02-07 01:53)
-        - [ ] Unit tests for presence logic
 
     ### Story 2.2: Active Users Display (3)
 
