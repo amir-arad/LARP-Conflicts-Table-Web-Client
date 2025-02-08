@@ -23,7 +23,7 @@ export type Presence = {
   name: string;
   photoUrl: string;
   lastActive: timestamp;
-  activeCell?: string;
+  activeCell: string | null;
 };
 
 export type LocksState = Record<string, LockInfo>;

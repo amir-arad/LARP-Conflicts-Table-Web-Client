@@ -11,5 +11,10 @@
   "filter.conflicts": "סינון קונפליקטים",
   "table.header": "קונפליקטים / תפקידים",
   "table.newConflict": "קונפליקט חדש",
-  "table.newRole": "תפקיד חדש"
+  "table.newRole": "תפקיד חדש",
+  "status.connected": "מחובר",
+  "status.disconnected": "מנותק",
+  "action.initializing": "מאתחל...",
+  "error.connection": "שגיאת חיבור",
+  "action.reconnect": "התחבר מחדש"
 }

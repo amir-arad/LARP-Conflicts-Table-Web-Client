@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useCollaboration } from "../../contexts/CollaborationContext";
-import { Presence, PresenceEvent } from "../../lib/collaboration";
+import { usePresence } from "../../hooks/usePresence";
+import { PresenceEvent } from "../../lib/collaboration";
 import { cn } from "../../lib/utils";
 
 interface ActiveUsersListProps {
@@ -8,51 +8,32 @@ interface ActiveUsersListProps {
   sheetId: string;
 }
 
-interface ActiveUser {
-  id: string;
-  presence: Presence;
-  isNew?: boolean;
-}
-
 export function ActiveUsersList({ className, sheetId }: ActiveUsersListProps) {
-  const { presence, subscribeToPresence } = useCollaboration(sheetId);
-  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
+  const { presence, subscribeToPresence } = usePresence(sheetId);
+  const [newUsers, setNewUsers] = useState<string[]>([]);
 
-  // Convert presence state to sorted array of users
-  useEffect(() => {
-    const users = Object.entries(presence).map(([id, data]) => ({
-      id,
-      presence: data,
-    }));
-    setActiveUsers(users);
-  }, [presence]);
-
-  // Handle presence events for animations
   useEffect(() => {
     const handlePresenceEvent = (event: PresenceEvent) => {
       if (event.type === "joined") {
-        setActiveUsers((prev) => [
-          ...prev,
-          { id: event.userId, presence: event.presence, isNew: true },
-        ]);
-        // Remove isNew flag after animation
-        setTimeout(() => {
-          setActiveUsers((prev) =>
-            prev.map((user) =>
-              user.id === event.userId ? { ...user, isNew: false } : user
-            )
-          );
-        }, 300);
+        setNewUsers((prev) => [...new Set([...prev, event.userId])]);
+        setTimeout(
+          () => setNewUsers((prev) => prev.filter((id) => id !== event.userId)),
+          300
+        );
       }
     };
 
     return subscribeToPresence(handlePresenceEvent, ["joined"]);
   }, [subscribeToPresence]);
 
-  if (activeUsers.length === 0) {
+  const usersIter = Object.entries(presence).map(([id, user]) => ({
+    id,
+    user,
+    isNew: newUsers.indexOf(id) >= 0,
+  }));
+  if (usersIter.length === 0) {
     return null;
   }
-
   return (
     <div
       className={cn(
@@ -61,7 +42,7 @@ export function ActiveUsersList({ className, sheetId }: ActiveUsersListProps) {
       )}
     >
       <div className="flex -space-x-2">
-        {activeUsers.map(({ id, presence: user, isNew }) => (
+        {usersIter.map(({ id, user, isNew }) => (
           <div
             key={id}
             className={cn(
@@ -85,10 +66,8 @@ export function ActiveUsersList({ className, sheetId }: ActiveUsersListProps) {
           </div>
         ))}
       </div>
-      {activeUsers.length > 0 && (
-        <span className="text-sm text-gray-600">
-          {activeUsers.length} active {activeUsers.length === 1 ? "user" : "users"}
-        </span>
+      {usersIter.length > 0 && (
+        <span className="text-sm text-gray-600">{usersIter.length}</span>
       )}
     </div>
   );

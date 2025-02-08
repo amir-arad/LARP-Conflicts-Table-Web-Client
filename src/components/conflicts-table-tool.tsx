@@ -6,7 +6,7 @@ import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
 import { useAuth } from "../contexts/AuthContext";
-import { useCollaboration } from "../contexts/CollaborationContext";
+import { usePresence } from "../hooks/usePresence";
 import { useConflictsTable } from "../hooks/useConflictsTable";
 import { useFlags } from "../hooks/useFlags";
 import { useTranslations } from "../hooks/useTranslations";
@@ -16,8 +16,8 @@ interface ConflictsTableToolProps {
 }
 
 const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
-  const { access_token } = useAuth();
-  useCollaboration(sheetId);
+  const { access_token, firebaseUser, isReady } = useAuth();
+  const { registerPresence, unregisterPresence } = usePresence(sheetId);
   const { t } = useTranslations();
 
   if (!access_token) {
@@ -56,6 +56,20 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
       loadData();
     }
   }, [access_token, sheetId, loadData]);
+
+  useEffect(() => {
+    if (isReady && access_token && sheetId && firebaseUser) {
+      registerPresence({
+        name: firebaseUser.displayName || 'Anonymous',
+        photoUrl: firebaseUser.photoURL || '',
+        activeCell: null,
+      });
+
+      return () => {
+        unregisterPresence();
+      };
+    }
+  }, [isReady, access_token, sheetId, firebaseUser, registerPresence, unregisterPresence]);
 
   const handleAddConflict = useCallback(
     () => addConflict(t("table.newConflict")),

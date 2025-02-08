@@ -4,11 +4,11 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { clientId, sheetId } from "./config";
 
-import { CollaborationProvider } from "./contexts/CollaborationContext";
 import ConflictsTableTool from "./components/conflicts-table-tool";
 import { I18nProvider } from "./i18n/I18nProvider";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
+import { ConnectionStatusIndicator } from "./components/ui/connection-status-indicator";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { useTranslations } from "./hooks/useTranslations";
@@ -55,6 +55,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<ConflictsTableTool sheetId={sheetId} />} />
         </Routes>
+        <ConnectionStatusIndicator />
       </div>
     </BrowserRouter>
   );
@@ -65,9 +66,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <AuthProvider clientId={clientId}>
       <LanguageProvider>
         <I18nProvider>
-          <CollaborationProvider>
             <App />
-          </CollaborationProvider>
         </I18nProvider>
       </LanguageProvider>
     </AuthProvider>

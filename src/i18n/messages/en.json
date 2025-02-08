@@ -11,5 +11,10 @@
   "filter.conflicts": "Conflict Filters",
   "table.header": "Conflicts / Roles",
   "table.newConflict": "New Conflict",
-  "table.newRole": "New Role"
+  "table.newRole": "New Role",
+  "status.connected": "Connected",
+  "status.disconnected": "Disconnected",
+  "action.initializing": "Initializing...",
+  "error.connection": "Connection Error",
+  "action.reconnect": "Reconnect"
 }
