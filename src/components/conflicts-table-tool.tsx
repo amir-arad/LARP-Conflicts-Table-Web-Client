@@ -1,6 +1,7 @@
 import { Alert, AlertDescription } from "./ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
+import { ActiveUsersList } from "./ui/active-users-list";
 import { Filter, Link, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
@@ -83,18 +84,17 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     <div className="p-4 max-w-full overflow-x-auto">
       <Card className="mb-4">
         <CardHeader>
-          <div className="flex justify-between items-center [dir='rtl']:flex-row-reverse">
+          <div className="flex justify-between items-center gap-4 [dir='rtl']:flex-row-reverse">
             <CardTitle>{t("app.title")}</CardTitle>
-            <div className="flex items-center gap-4 [dir='rtl']:flex-row-reverse">
-              <a
-                href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse"
-              >
-                <Link size={16} /> {t("app.openInSheets")}
-              </a>
-            </div>
+            <ActiveUsersList sheetId={sheetId} className="flex-1 max-w-md" />
+            <a
+              href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse whitespace-nowrap"
+            >
+              <Link size={16} /> {t("app.openInSheets")}
+            </a>
           </div>
         </CardHeader>
         <CardContent>

@@ -33,11 +33,11 @@
 
     ### Story 2.2: Active Users Display (3)
 
-        - [ ] Create active users list component
-        - [ ] Add user avatars
-        - [ ] Style presence indicators
-        - [ ] Implement real-time user updates
-        - [ ] Add presence subscription integration
+        - [x] Create active users list component @done(25-02-08 11:27)
+        - [x] Add user avatars @done(25-02-08 11:27)
+        - [x] Style presence indicators @done(25-02-08 11:27)
+        - [x] Implement real-time user updates @done(25-02-08 11:27)
+        - [x] Add presence subscription integration @done(25-02-08 11:27)
 
     ### Story 2.3: Cell Editing UI (5)
 
