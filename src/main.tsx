@@ -1,7 +1,7 @@
 import "./index.css";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { HashRouter, Link, Route, Routes } from "react-router-dom";
 import { clientId, sheetId } from "./config";
 
 import ConflictsTableTool from "./components/conflicts-table-tool";
@@ -33,7 +33,7 @@ const App = () => {
   }
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="min-h-screen">
         <nav className="bg-indigo-600">
           <div className="max-w-7xl mx-auto px-4">
@@ -57,7 +57,7 @@ const App = () => {
         </Routes>
         <ConnectionStatusIndicator />
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
