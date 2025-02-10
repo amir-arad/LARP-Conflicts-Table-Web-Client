@@ -1,0 +1,81 @@
+## Epic 1: Firebase Infrastructure (Foundation)
+
+    ### Story 1.1: Firebase Project Setup (2)
+
+        - [x] Create Firebase project
+        - [x] Configure RTDB settings
+        - [x] Generate and store API keys
+        - [x] Document setup process
+
+    ### Story 1.2: Firebase Client Integration (3)
+
+        - [x] Create `src/lib/firebase.ts` @done(25-02-04 23:58)
+        - [x] Implement Firebase initialization @done(25-02-04 23:58)
+        - [x] Add connection management utilities @done(25-02-05 00:30)
+        - [x] Create basic RTDB interaction methods @done(25-02-05 00:30)
+        - [x] Add configuration to `src/config.tsx` @done(25-02-05 00:30)
+
+    ### Story 1.3: Collaboration Types and Context (2)
+
+        - [x] Create collaboration types in `src/lib/collaboration.ts` @done(25-02-06 13:46)
+        - [x] Define Firebase schema types @done(25-02-06 13:46)
+        - [x] Create `src/contexts/CollaborationContext.tsx` @done(25-02-06 13:46)
+        - [x] Implement basic connection state management @done(25-02-06 13:46)
+
+## Epic 2: Real-time Core Features
+
+    ### Story 2.1: Presence System Base (5)
+
+        - [x] Implement user presence registration in CollaborationContext @done(25-02-06 16:40)
+        - [x] Add presence heartbeat mechanism @done(25-02-06 16:52)
+        - [x] Implement auto-disconnect cleanup @done(25-02-06 23:35)
+        - [x] Add presence subscription handlers @done(25-02-07 01:53)
+
+    ### Story 2.2: Active Users Display (3)
+
+        - [x] Create active users list component @done(25-02-08 11:27)
+        - [x] Add user avatars @done(25-02-08 11:27)
+        - [x] Style presence indicators @done(25-02-08 11:27)
+        - [x] Implement real-time user updates @done(25-02-08 11:27)
+        - [x] Add presence subscription integration @done(25-02-08 11:27)
+
+    ### Story 2.3: Cell Editing UI (5)
+
+        - [x] Add lock state visualizations @done(25-02-09 00:24)
+        - [x] Add tooltips for locked cells @done(25-02-09 00:24)
+        - [ ] Create lock validation utilities
+        - [ ] Implement lock acquisition logic
+        - [ ] Add TTL-based lock expiration
+        - [ ] Add lock release mechanisms
+
+    ### Story 2.4: Live Cursor Indicators (4)
+
+        - [ ] Create cursor overlay component
+        - [ ] Add user identification to cursors
+        - [ ] Style cursor indicators
+        - [ ] Add cursor position tracking to presence system
+        - [ ] Implement cursor position updates
+        - [ ] Add cleanup on disconnect
+
+## Epic 3: Polish & Performance
+
+    ### Story 3.1: Error Handling (3)
+
+        - [ ] Create user-facing error states
+        - [ ] Implement connection error handling
+        - [ ] Add retry mechanisms
+        - [ ] Add error recovery flows
+
+    ### Story 3.2: Performance Optimization (3)
+
+        - [ ] Optimize presence updates
+        - [ ] Add debouncing for cursor updates
+        - [ ] Implement connection state recovery
+        - [ ] Performance testing
+
+    ### Story 3.3: Edge Cases (2)
+
+        - [ ] Handle simultaneous lock requests
+        - [ ] Implement lock timeout recovery
+        - [ ] Add disconnect recovery logic
+        - [ ] Test concurrent scenarios

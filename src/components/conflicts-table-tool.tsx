@@ -1,20 +1,29 @@
+import { Filter, Link, Plus } from "lucide-react";
+import { useCallback, useEffect } from "react";
+import { ActiveUsersList } from "./ui/active-users-list";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
-import { Filter, Link, Plus } from "lucide-react";
-import { useCallback, useEffect } from "react";
 
+import { useAuth } from "../contexts/AuthContext";
 import { useConflictsTable } from "../hooks/useConflictsTable";
 import { useFlags } from "../hooks/useFlags";
+import { usePresence } from "../hooks/usePresence";
 import { useTranslations } from "../hooks/useTranslations";
 
-type ConflictsTableToolProps = {
-  token: string;
+interface ConflictsTableToolProps {
   sheetId: string;
-};
+}
 
-const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
+const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
+  const { access_token, firebaseUser, isReady } = useAuth();
+  const { registerPresence, unregisterPresence } = usePresence(sheetId);
   const { t } = useTranslations();
+
+  if (!access_token) {
+    return <div>{t("app.loading")}</div>;
+  }
+
   const [roleFilters, toggleRoleFilter] = useFlags({
     namespace: `${sheetId}-roleFilters`,
   });
@@ -36,13 +45,34 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     updateMotivation,
     updateConflictName,
     updateRoleName,
-  } = useConflictsTable({ sheetId, token, gapi: window.gapi });
+  } = useConflictsTable({
+    sheetId: sheetId,
+    token: access_token,
+    gapi: window.gapi,
+  });
 
   useEffect(() => {
-    if (token && sheetId) {
+    if (access_token && sheetId) {
       loadData();
     }
-  }, [token, sheetId, loadData]);
+  }, [access_token, sheetId, loadData]);
+
+  useEffect(() => {
+    if (isReady && access_token && sheetId && firebaseUser) {
+      registerPresence({ activeCell: null });
+
+      return () => {
+        unregisterPresence();
+      };
+    }
+  }, [
+    isReady,
+    access_token,
+    sheetId,
+    firebaseUser,
+    registerPresence,
+    unregisterPresence,
+  ]);
 
   const handleAddConflict = useCallback(
     () => addConflict(t("table.newConflict")),
@@ -71,18 +101,17 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
     <div className="p-4 max-w-full overflow-x-auto">
       <Card className="mb-4">
         <CardHeader>
-          <div className="flex justify-between items-center [dir='rtl']:flex-row-reverse">
+          <div className="flex justify-between items-center gap-4 [dir='rtl']:flex-row-reverse">
             <CardTitle>{t("app.title")}</CardTitle>
-            <div className="flex items-center gap-4 [dir='rtl']:flex-row-reverse">
-              <a
-                href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse"
-              >
-                <Link size={16} /> {t("app.openInSheets")}
-              </a>
-            </div>
+            <ActiveUsersList sheetId={sheetId} className="flex-1 max-w-md" />
+            <a
+              href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse whitespace-nowrap"
+            >
+              <Link size={16} /> {t("app.openInSheets")}
+            </a>
           </div>
         </CardHeader>
         <CardContent>
@@ -160,8 +189,14 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
             <table className="min-w-full border-collapse border border-gray-300 [dir='rtl']:text-right">
               <thead>
                 <tr>
-                  <EditableTableCell isHeader content={t("table.header")} />
-                  {filteredRoles.map((role) => (
+                  <EditableTableCell
+                    isHeader
+                    content={t("table.header")}
+                    sheetId={sheetId}
+                    rowIndex={0}
+                    colIndex={0}
+                  />
+                  {filteredRoles.map((role, roleIndex) => (
                     <EditableTableCell
                       key={role.cellRef}
                       isHeader
@@ -171,12 +206,15 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                       }
                       showDelete
                       onDelete={() => removeRole(role.cellRef)}
+                      rowIndex={0}
+                      colIndex={roleIndex + 1}
+                      sheetId={sheetId}
                     />
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredConflicts.map((conflict) => (
+                {filteredConflicts.map((conflict, conflictIndex) => (
                   <tr key={conflict.cellRef}>
                     <EditableTableCell
                       content={conflict.value}
@@ -186,8 +224,11 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                       showDelete
                       onDelete={() => removeConflict(conflict.cellRef)}
                       className="bg-gray-50"
+                      rowIndex={conflictIndex + 1}
+                      colIndex={0}
+                      sheetId={sheetId}
                     />
-                    {filteredRoles.map((role) => {
+                    {filteredRoles.map((role, roleIndex) => {
                       const motivation = conflict.motivations[role.cellRef];
                       return (
                         <MotivationTableCell
@@ -200,6 +241,9 @@ const ConflictsTableTool = ({ token, sheetId }: ConflictsTableToolProps) => {
                               newContent
                             )
                           }
+                          rowIndex={conflictIndex + 1}
+                          colIndex={roleIndex + 1}
+                          sheetId={sheetId}
                         />
                       );
                     })}

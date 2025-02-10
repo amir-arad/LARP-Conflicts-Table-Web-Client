@@ -1,27 +1,21 @@
 import "./index.css";
 
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
-import { apiKey, clientId, sheetId } from "./config";
+import { clientId, sheetId } from "./config";
 
 import ConflictsTableTool from "./components/conflicts-table-tool";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import { I18nProvider } from "./i18n/I18nProvider";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
+import { ConnectionStatusIndicator } from "./components/ui/connection-status-indicator";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { useGoogleAuth } from "./hooks/useGoogleAuth";
 import { useTranslations } from "./hooks/useTranslations";
-
-const googleOptions = {
-  apiKey,
-  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-};
 
 const App = () => {
   const { t } = useTranslations();
-  const { access_token, login, isReady } = useGoogleAuth(googleOptions);
+  const { access_token, login, isReady } = useAuth();
 
   if (!access_token) {
     return (
@@ -59,13 +53,9 @@ const App = () => {
           </div>
         </nav>
         <Routes>
-          <Route
-            path="/"
-            element={
-              <ConflictsTableTool token={access_token} sheetId={sheetId} />
-            }
-          />
+          <Route path="/" element={<ConflictsTableTool sheetId={sheetId} />} />
         </Routes>
+        <ConnectionStatusIndicator />
       </div>
     </BrowserRouter>
   );
@@ -73,12 +63,12 @@ const App = () => {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={clientId}>
+    <AuthProvider clientId={clientId}>
       <LanguageProvider>
         <I18nProvider>
-          <App />
+            <App />
         </I18nProvider>
       </LanguageProvider>
-    </GoogleOAuthProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

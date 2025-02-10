@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "vitest"
+    "test": "vitest run --reporter=dot"
   },
   "dependencies": {
     "@chromatic-com/storybook": "^3.2.4",
@@ -22,6 +22,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
+    "firebase": "^11.2.0",
     "gapi-script": "^1.2.0",
     "googleapis": "^144.0.0",
     "lucide-react": "^0.474.0",

@@ -1,0 +1,27 @@
+{
+  "rules": {
+    "sheets": {
+      "$sheetId": {
+        "presence": {
+          "$userId": {
+            ".read": true,
+            ".write": "auth != null && $userId === auth.uid",
+            "name": { ".validate": "newData.isString()" },
+            "photoUrl": { ".validate": "newData.isString()" },
+            "lastActive": { ".validate": "newData.isNumber()" },
+            "activeCell": { ".validate": "newData.isString() || newData.val() == null" }
+          }
+        },
+        "locks": {
+          "$cellId": {
+            ".read": true,
+            ".write": true,
+            "userId": { ".validate": "newData.isString()" },
+            "acquired": { ".validate": "newData.isNumber()" },
+            "expires": { ".validate": "newData.isNumber() && newData.val() > now" }
+          }
+        }
+      }
+    }
+  }
+}
