@@ -127,7 +127,9 @@ export function useConflictsTable({
 
         const values = response.result.values;
         if (!values) {
-          throw new Error("No data found in sheet");
+          setRoles([]);
+          setConflicts([]);
+          return;
         }
 
         const sheetRoles: RoleData[] = values[0]
