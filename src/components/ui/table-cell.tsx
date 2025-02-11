@@ -55,15 +55,18 @@ export const EditableTableCell = React.forwardRef<
       showDelete,
       onDelete,
       isHeader = false,
+      sheetId,
+      colIndex,
+      rowIndex,
       ...props
     },
     ref
   ) => {
     const { getContentClass, getTextDirection } = useRtlUtils();
-    const { locks, presence, registerPresence } = usePresence(props.sheetId);
+    const { locks, presence, registerPresence } = usePresence(sheetId);
 
     const Element = isHeader ? "th" : "td";
-    const cellId = `cell-${props.rowIndex}-${props.colIndex}`;
+    const cellId = `cell-${rowIndex}-${colIndex}`;
     const lockInfo = locks[cellId];
     const lockOwner = lockInfo ? presence[lockInfo.userId] : null;
 
@@ -131,47 +134,60 @@ interface MotivationTableCellProps
 export const MotivationTableCell = React.forwardRef<
   HTMLTableCellElement,
   MotivationTableCellProps
->(({ className, content = "", onUpdate, ...props }, ref) => {
-  const { getContentClass, getTextDirection } = useRtlUtils();
-  const { locks, presence, registerPresence } = usePresence(props.sheetId);
+>(
+  (
+    {
+      className,
+      content = "",
+      onUpdate,
+      sheetId,
+      rowIndex,
+      colIndex,
+      ...props
+    },
+    ref
+  ) => {
+    const { getContentClass, getTextDirection } = useRtlUtils();
+    const { locks, presence, registerPresence } = usePresence(sheetId);
 
-  const cellId = `cell-${props.rowIndex}-${props.colIndex}`;
-  const lockInfo = locks[cellId];
-  const lockOwner = lockInfo ? presence[lockInfo.userId] : null;
+    const cellId = `cell-${rowIndex}-${colIndex}`;
+    const lockInfo = locks[cellId];
+    const lockOwner = lockInfo ? presence[lockInfo.userId] : null;
 
-  return (
-    <td
-      ref={ref}
-      id={cellId}
-      className={cn(
-        "border p-2 relative group",
-        getContentClass(content),
-        lockInfo && "border-red-400",
-        className
-      )}
-      dir={getTextDirection(content)}
-      {...props}
-    >
-      <LockIndicator lockInfo={lockInfo} lockOwner={lockOwner} />
-      <div
-        contentEditable={!lockInfo}
-        suppressContentEditableWarning
-        onFocus={() => {
-          if (onUpdate) {
-            registerPresence({ activeCell: cellId });
-          }
-        }}
-        onBlur={(e) => {
-          if (onUpdate) {
-            registerPresence({ activeCell: null });
-            onUpdate(e.target.textContent || "");
-          }
-        }}
-        className="min-h-8 focus:outline-none focus:bg-blue-50"
+    return (
+      <td
+        ref={ref}
+        id={cellId}
+        className={cn(
+          "border p-2 relative group",
+          getContentClass(content),
+          lockInfo && "border-red-400",
+          className
+        )}
+        dir={getTextDirection(content)}
+        {...props}
       >
-        {content}
-      </div>
-    </td>
-  );
-});
+        <LockIndicator lockInfo={lockInfo} lockOwner={lockOwner} />
+        <div
+          contentEditable={!lockInfo}
+          suppressContentEditableWarning
+          onFocus={() => {
+            if (onUpdate) {
+              registerPresence({ activeCell: cellId });
+            }
+          }}
+          onBlur={(e) => {
+            if (onUpdate) {
+              registerPresence({ activeCell: null });
+              onUpdate(e.target.textContent || "");
+            }
+          }}
+          className="min-h-8 focus:outline-none focus:bg-blue-50"
+        >
+          {content}
+        </div>
+      </td>
+    );
+  }
+);
 MotivationTableCell.displayName = "MotivationTableCell";

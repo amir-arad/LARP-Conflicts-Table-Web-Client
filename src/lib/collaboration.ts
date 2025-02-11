@@ -19,11 +19,14 @@ export type LockInfo = {
   expires: timestamp; // 30s TTL from acquired timestamp
 };
 
+export type PresenceUpdateType = 'heartbeat' | 'state_change';
+
 export type Presence = {
   name: string;
   photoUrl: string;
   lastActive: timestamp;
   activeCell: string | null;
+  updateType: PresenceUpdateType;
 };
 
 export type LocksState = Record<string, LockInfo>;

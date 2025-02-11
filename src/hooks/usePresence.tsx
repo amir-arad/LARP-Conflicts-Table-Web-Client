@@ -16,11 +16,11 @@ import {
   setupDisconnectCleanup,
 } from "../lib/firebase";
 
-const DEFAULT_HEARTBEAT_CONFIG: HeartbeatConfig = {
+export const DEFAULT_HEARTBEAT_CONFIG: HeartbeatConfig = Object.freeze({
   interval: 30_000,
   maxRetries: 3,
   retryDelay: 5_000,
-};
+});
 
 export function usePresence(namespace: string) {
   const { access_token, firebaseUser, isReady } = useAuth();
@@ -58,13 +58,20 @@ export function usePresence(namespace: string) {
       const joined = new Set<string>();
       const left = new Set(Object.keys(presence));
       const updated = new Set<string>();
+      
       for (const userId of Object.keys(newPresence)) {
+        const newUserData = newPresence[userId];
         if (left.delete(userId)) {
-          updated.add(userId);
-        } else {
+          // User already exists
+          if (newUserData.updateType === 'state_change') {
+            updated.add(userId);
+          }
+        } else if (newUserData.updateType === 'state_change') {
+          // Only add to joined if it's a state change, not a heartbeat
           joined.add(userId);
         }
       }
+      
       for (const userId of left) {
         emitPresenceEvent(userId, presence[userId], "left");
       }
@@ -100,7 +107,7 @@ export function usePresence(namespace: string) {
   }, [namespace, access_token, isReady, handlePresenceUpdate]);
 
   const registerPresence = useCallback(
-    (presenceData: Omit<Presence, "lastActive" | "name" | "photoUrl">) => {
+    (presenceData: Pick<Presence, "activeCell">) => {
       if (!namespace || !access_token || !userId || !isReady) {
         throw new Error("Cannot register presence without namespace and auth");
       }

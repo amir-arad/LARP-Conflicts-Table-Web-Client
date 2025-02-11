@@ -106,29 +106,30 @@ export const connectionManager = {
     }
   },
 
-  setupPresenceHeartbeat: (
-    sheetId: string,
-    userId: string,
-    presenceData: Partial<Presence>,
-    config: HeartbeatConfig = {
-      interval: 30000,
-      maxRetries: 3,
-      retryDelay: 5000,
-    },
-    onError?: (error: HeartbeatError) => void
-  ) => {
-    const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
-    if (!presenceRef) return;
+    setupPresenceHeartbeat: (
+      sheetId: string,
+      userId: string,
+      presenceData: Partial<Presence>,
+      config: HeartbeatConfig = {
+        interval: 30000,
+        maxRetries: 3,
+        retryDelay: 5000,
+      },
+      onError?: (error: HeartbeatError) => void
+    ) => {
+      const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
+      if (!presenceRef) return;
 
-    let retryCount = 0;
-    let retryTimeout: NodeJS.Timeout | null = null;
+      let retryCount = 0;
+      let retryTimeout: NodeJS.Timeout | null = null;
 
-    const updatePresence = async () => {
-      try {
-        await set(presenceRef, {
-          ...presenceData,
-          lastActive: serverTimestamp(),
-        });
+      const updatePresence = async () => {
+        try {
+          await set(presenceRef, {
+            ...presenceData,
+            lastActive: serverTimestamp(),
+            updateType: 'heartbeat',
+          });
         retryCount = 0; // Reset retry count on success
       } catch (error) {
         retryCount++;
@@ -245,6 +246,7 @@ export const realtimeDB = {
         ...data,
         userId, 
         lastActive: serverTimestamp(),
+        updateType: 'state_change',
       });
     },
 

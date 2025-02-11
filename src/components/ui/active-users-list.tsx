@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { usePresence } from "../../hooks/usePresence";
+import { DEFAULT_HEARTBEAT_CONFIG, usePresence } from "../../hooks/usePresence";
 import { PresenceEvent } from "../../lib/collaboration";
 import { cn } from "../../lib/utils";
 
@@ -13,17 +13,16 @@ export function ActiveUsersList({ className, sheetId }: ActiveUsersListProps) {
   const [newUsers, setNewUsers] = useState<string[]>([]);
 
   useEffect(() => {
-    const handlePresenceEvent = (event: PresenceEvent) => {
-      if (event.type === "joined") {
+    const handleJoin = (event: PresenceEvent) => {
         setNewUsers((prev) => [...new Set([...prev, event.userId])]);
         setTimeout(
           () => setNewUsers((prev) => prev.filter((id) => id !== event.userId)),
-          300
+          DEFAULT_HEARTBEAT_CONFIG.interval + DEFAULT_HEARTBEAT_CONFIG.retryDelay
         );
-      }
+      
     };
 
-    return subscribeToPresence(handlePresenceEvent, ["joined"]);
+    return subscribeToPresence(handleJoin, ["joined"]);
   }, [subscribeToPresence]);
 
   const usersIter = Object.entries(presence).map(([id, user]) => ({
