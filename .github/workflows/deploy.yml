@@ -48,6 +48,8 @@ jobs:
           echo "VITE_ROLES_CONFLICT_SHEET_ID=${{ vars.VITE_ROLES_CONFLICT_SHEET_ID }}" >> .env
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: production
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

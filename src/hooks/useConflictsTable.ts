@@ -44,10 +44,10 @@ const getCellRange = (...cells: CellNode[]): string => {
   const maxColIndex = Math.max(...colIndexes);
   const minRowIndex = Math.min(...rowIndexes);
   const maxRowIndex = Math.max(...rowIndexes);
-  return `${ROLES_CONFLICT_SHEET_ID}!${getCellRef(minRowIndex, minColIndex)}:${getCellRef(
-    maxRowIndex,
-    maxColIndex
-  )}`;
+  return `${ROLES_CONFLICT_SHEET_ID}!${getCellRef(
+    minRowIndex,
+    minColIndex
+  )}:${getCellRef(maxRowIndex, maxColIndex)}`;
 };
 
 export type ConflictsTable = ReturnType<typeof useConflictsTable>;
@@ -73,20 +73,20 @@ export function useConflictsTable({
     T extends (...args: A) => Promise<unknown>
   >(name: string, callback: T, deps: DependencyList) {
     return useCallback((...args: ArgumentsType<T>) => {
-      console.log("action", name, [...deps]);
+      if (import.meta.env.DEV) console.log("action", name, [...deps]);
       if (actionLock.current) {
-        console.log(
+        console.warn(
           `${name} skipped - action lock active: ${actionLock.current}`
         );
         return;
       }
-      console.log(`${name} started`);
+      if (import.meta.env.DEV) console.log(`${name} started`);
       actionLock.current = true;
 
       callback(...args)
         .then(
           () => {
-            console.log(`${name} completed successfully`);
+            if (import.meta.env.DEV) console.log(`${name} completed successfully`);
             setError(null);
           },
           (error: Error) => {
@@ -95,7 +95,7 @@ export function useConflictsTable({
           }
         )
         .finally(() => {
-          console.log(`${name} cleanup`);
+          if (import.meta.env.DEV) console.log(`${name} cleanup`);
           actionLock.current = false;
         });
     }, deps);
@@ -104,22 +104,22 @@ export function useConflictsTable({
   const loadData = action(
     "load data from Google Sheet",
     async () => {
-      console.log("Starting data load");
+      if (import.meta.env.DEV) console.log("Starting data load");
       if (isLoading) {
-        console.log(`${name} skipped - loading`);
+        console.warn(`data load skipped - loading`);
         return;
       }
       setIsLoading(true);
       try {
         if (!gapi.client.sheets) {
-          console.log("Loading sheets API");
+          if (import.meta.env.DEV) console.log("Loading sheets API");
           await gapi.client.load("sheets", "v4");
           if (!gapi.client.sheets) {
             throw new Error("Google Sheets API not loaded");
           }
         }
 
-        console.log("Fetching sheet data");
+        if (import.meta.env.DEV) console.log("Fetching sheet data");
         const response = await gapi.client.sheets.spreadsheets.values.get({
           ...optinos,
           range: `${ROLES_CONFLICT_SHEET_ID}!A1:Z1000`,

@@ -93,50 +93,77 @@ function AuthContext({ children }: { children: ReactNode }) {
       login: () => access_token || login(),
     };
   });
+  
+  if (import.meta.env.DEV) {
+    useEffect(() => {
+      console.log("auth changed", auth);
+    }, [auth]);
+  }
 
-  useEffect(() => {
-    console.log("auth changed", auth);
-  }, [auth]);
-
-  const setClientStatus = useCallback((clientStatus: ClientLoadStatus, prev : ClientLoadStatus | null) => {
-    if (prev !== null && prev !== auth.clientStatus) {
-      console.warn("Client status changed from", ClientLoadStatus[prev], "to", ClientLoadStatus[clientStatus]);
-    }
-    setAuth((prev) => ({
-      ...prev,
-      clientStatus,
-      errorStatus: prev.clientStatus,
-    }));
-  }, [setAuth, auth.clientStatus]);
-  const setToken = useCallback((token: string | null) => {
-    setAuth((prev) => ({
-      ...prev,
-      access_token: token,
-      login: () => token || login(),
-    }));
-  }, [setAuth]);
-  const setFirebaseUser = useCallback((firebaseUser: User | null) => {
-    setAuth((prev) => ({ ...prev, firebaseUser }));
-  }, [setAuth]);
-  const setError = useCallback((error: unknown) => {
-    console.error("Error during " + ClientLoadStatus[auth.clientStatus], error);
-    const errorStatus = auth.clientStatus;
-    setAuth((prev) => {
-      if (errorStatus !== prev.clientStatus) return prev as AuthState;
-      return {
+  const setClientStatus = useCallback(
+    (clientStatus: ClientLoadStatus, prev: ClientLoadStatus | null) => {
+      if (prev !== null && prev !== auth.clientStatus) {
+        console.warn(
+          "Client status changed from",
+          ClientLoadStatus[prev],
+          "to",
+          ClientLoadStatus[clientStatus]
+        );
+      }
+      setAuth((prev) => ({
         ...prev,
-        clientStatus: ClientLoadStatus.Error,
-        errorStatus: errorStatus,
-        error: error as Error,
-      };
-    });
-  }, [setAuth, auth.clientStatus]);
+        clientStatus,
+        errorStatus: prev.clientStatus,
+      }));
+    },
+    [setAuth, auth.clientStatus]
+  );
+  const setToken = useCallback(
+    (token: string | null) => {
+      setAuth((prev) => ({
+        ...prev,
+        access_token: token,
+        login: () => token || login(),
+      }));
+    },
+    [setAuth]
+  );
+  const setFirebaseUser = useCallback(
+    (firebaseUser: User | null) => {
+      setAuth((prev) => ({ ...prev, firebaseUser }));
+    },
+    [setAuth]
+  );
+  const setError = useCallback(
+    (error: unknown) => {
+      console.error(
+        "Error during " + ClientLoadStatus[auth.clientStatus],
+        error
+      );
+      const errorStatus = auth.clientStatus;
+      setAuth((prev) => {
+        if (errorStatus !== prev.clientStatus) return prev as AuthState;
+        return {
+          ...prev,
+          clientStatus: ClientLoadStatus.Error,
+          errorStatus: errorStatus,
+          error: error as Error,
+        };
+      });
+    },
+    [setAuth, auth.clientStatus]
+  );
 
   useEffect(() => {
     try {
       switch (auth.clientStatus) {
         case ClientLoadStatus.Loading:
-          gapi.load("client", () => setClientStatus(ClientLoadStatus.Initializing_gapi, ClientLoadStatus.Loading));
+          gapi.load("client", () =>
+            setClientStatus(
+              ClientLoadStatus.Initializing_gapi,
+              ClientLoadStatus.Loading
+            )
+          );
           break;
         case ClientLoadStatus.Initializing_gapi:
           gapi.client
@@ -144,13 +171,21 @@ function AuthContext({ children }: { children: ReactNode }) {
               apiKey,
               discoveryDocs,
             })
-            .then(() => setClientStatus(ClientLoadStatus.Initializing_gapi_2, ClientLoadStatus.Initializing_gapi))
+            .then(() =>
+              setClientStatus(
+                ClientLoadStatus.Initializing_gapi_2,
+                ClientLoadStatus.Initializing_gapi
+              )
+            )
             .catch(setError);
           break;
         case ClientLoadStatus.Initializing_gapi_2:
           if (auth.access_token) {
             gapi.client.setToken({ access_token: auth.access_token });
-            setClientStatus(ClientLoadStatus.Initializing_firebase, ClientLoadStatus.Initializing_gapi_2);
+            setClientStatus(
+              ClientLoadStatus.Initializing_firebase,
+              ClientLoadStatus.Initializing_gapi_2
+            );
           }
           break;
         case ClientLoadStatus.Initializing_firebase:
@@ -167,7 +202,12 @@ function AuthContext({ children }: { children: ReactNode }) {
             );
             signInWithCredential(firebaseAuth, firebaseCredential)
               .then((result) => setFirebaseUser(result.user))
-              .then(() => setClientStatus(ClientLoadStatus.Connecting, ClientLoadStatus.Initializing_firebase))
+              .then(() =>
+                setClientStatus(
+                  ClientLoadStatus.Connecting,
+                  ClientLoadStatus.Initializing_firebase
+                )
+              )
               .catch(setError);
           } else {
             setError(new Error("No access token"));
@@ -176,10 +216,16 @@ function AuthContext({ children }: { children: ReactNode }) {
         case ClientLoadStatus.Connecting:
           const cleanup = connectionManager.monitorConnection((connected) => {
             if (connected) {
-              setClientStatus(ClientLoadStatus.Ready, ClientLoadStatus.Connecting);
+              setClientStatus(
+                ClientLoadStatus.Ready,
+                ClientLoadStatus.Connecting
+              );
               connectionManager.reconnect().catch(setError);
             } else if (auth.clientStatus === ClientLoadStatus.Ready) {
-              setClientStatus(ClientLoadStatus.Connecting, ClientLoadStatus.Ready);
+              setClientStatus(
+                ClientLoadStatus.Connecting,
+                ClientLoadStatus.Ready
+              );
             }
           });
           return cleanup;
@@ -205,7 +251,10 @@ export function useAuth() {
   if (!context) {
     throw new Error("useGoogleAuth must be used within a GoogleAuthProvider");
   }
-  return { ...context, isReady: context.clientStatus === ClientLoadStatus.Ready};
+  return {
+    ...context,
+    isReady: context.clientStatus === ClientLoadStatus.Ready,
+  };
 }
 
 export function useAccessToken() {
