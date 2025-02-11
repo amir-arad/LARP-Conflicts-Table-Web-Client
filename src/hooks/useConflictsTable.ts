@@ -1,6 +1,6 @@
 import { DependencyList, useCallback, useRef, useState } from "react";
-
 import { ReadonlyDeep } from "type-fest";
+import { ROLES_CONFLICT_SHEET_ID } from "../config";
 
 type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
 
@@ -44,7 +44,7 @@ const getCellRange = (...cells: CellNode[]): string => {
   const maxColIndex = Math.max(...colIndexes);
   const minRowIndex = Math.min(...rowIndexes);
   const maxRowIndex = Math.max(...rowIndexes);
-  return `Sheet1!${getCellRef(minRowIndex, minColIndex)}:${getCellRef(
+  return `${ROLES_CONFLICT_SHEET_ID}!${getCellRef(minRowIndex, minColIndex)}:${getCellRef(
     maxRowIndex,
     maxColIndex
   )}`;
@@ -122,7 +122,7 @@ export function useConflictsTable({
         console.log("Fetching sheet data");
         const response = await gapi.client.sheets.spreadsheets.values.get({
           ...optinos,
-          range: "Sheet1!A1:Z1000",
+          range: `${ROLES_CONFLICT_SHEET_ID}!A1:Z1000`,
         });
 
         const values = response.result.values;
@@ -198,7 +198,7 @@ export function useConflictsTable({
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range: "Sheet1!A1:Z1000",
+        range: `${ROLES_CONFLICT_SHEET_ID}!A1:Z1000`,
         valueInputOption: "RAW",
         resource: { values },
       });
@@ -224,7 +224,7 @@ export function useConflictsTable({
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range: `Sheet1!${cellRef}:${getCellRef(
+        range: `${ROLES_CONFLICT_SHEET_ID}!${cellRef}:${getCellRef(
           conflicts.length + 1,
           roles.length
         )}`,
@@ -253,7 +253,7 @@ export function useConflictsTable({
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range: `Sheet1!${cellRef}:${getCellRef(
+        range: `${ROLES_CONFLICT_SHEET_ID}!${cellRef}:${getCellRef(
           conflicts.length,
           roles.length + 1
         )}`,
@@ -351,7 +351,7 @@ export function useConflictsTable({
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range: `Sheet1!${cellRef}`,
+        range: `${ROLES_CONFLICT_SHEET_ID}!${cellRef}`,
         valueInputOption: "RAW",
         resource: { values: [[value]] },
       });
@@ -422,7 +422,7 @@ export function useConflictsTable({
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range: `Sheet1!${cellRef}`,
+        range: `${ROLES_CONFLICT_SHEET_ID}!${cellRef}`,
         valueInputOption: "RAW",
         resource: { values: [[newName]] },
       });
@@ -447,7 +447,7 @@ export function useConflictsTable({
 
       await gapi.client.sheets.spreadsheets.values.update({
         ...optinos,
-        range: `Sheet1!${cellRef}`,
+        range: `${ROLES_CONFLICT_SHEET_ID}!${cellRef}`,
         valueInputOption: "RAW",
         resource: { values: [[newName]] },
       });
