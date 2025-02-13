@@ -16,6 +16,20 @@
       }
     },
     {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome storybook",
+      "url": "http://localhost:6006/?path=/story/ui-activeuserslist--multiple-users-with-active-cells",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      // "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${webRoot}/*",
+        "/@vite/*": "${webRoot}/node_modules/vite/*",
+        "/src/*": "${webRoot}/src/*"
+      }
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Debug Vitest Tests",

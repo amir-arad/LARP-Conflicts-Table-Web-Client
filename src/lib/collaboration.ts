@@ -53,3 +53,8 @@ export interface AllCollaborationsState {
     [sheetId: string]: CollaborationState;
   };
 }
+export const DEFAULT_HEARTBEAT_CONFIG: HeartbeatConfig = Object.freeze({
+  interval: 30_000,
+  maxRetries: 3,
+  retryDelay: 5_000,
+});

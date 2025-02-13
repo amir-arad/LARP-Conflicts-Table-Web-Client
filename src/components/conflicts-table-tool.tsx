@@ -103,7 +103,7 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
         <CardHeader>
           <div className="flex justify-between items-center gap-4 [dir='rtl']:flex-row-reverse">
             <CardTitle>{t("app.title")}</CardTitle>
-            <ActiveUsersList sheetId={sheetId} className="flex-1 max-w-md" />
+            <ActiveUsersList usePresenceHook={usePresence} sheetId={sheetId} className="flex-1 max-w-md" />
             <a
               href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
               target="_blank"

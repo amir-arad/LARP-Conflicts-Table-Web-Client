@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import type {
-  HeartbeatConfig,
+import {
+  DEFAULT_HEARTBEAT_CONFIG,
   LocksState,
   Presence,
   PresenceEvent,
@@ -16,11 +16,6 @@ import {
   setupDisconnectCleanup,
 } from "../lib/firebase";
 
-export const DEFAULT_HEARTBEAT_CONFIG: HeartbeatConfig = Object.freeze({
-  interval: 30_000,
-  maxRetries: 3,
-  retryDelay: 5_000,
-});
 
 export function usePresence(namespace: string) {
   const { access_token, firebaseUser, isReady } = useAuth();
