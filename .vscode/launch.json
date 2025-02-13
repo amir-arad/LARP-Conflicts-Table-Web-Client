@@ -4,11 +4,14 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch Chrome against internal vite",
+      "name": "Web app",
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}",
       "sourceMaps": true,
-      // "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+      "userDataDir": false,
+      "runtimeArgs": [
+        "--profile-directory=${input:chromeProfile}"
+      ],
       "sourceMapPathOverrides": {
         "/@fs/*": "${webRoot}/*",
         "/@vite/*": "${webRoot}/node_modules/vite/*",
@@ -18,11 +21,11 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch Chrome storybook",
+      "name": "Storybook",
       "url": "http://localhost:6006/?path=/story/ui-activeuserslist--multiple-users-with-active-cells",
       "webRoot": "${workspaceFolder}",
       "sourceMaps": true,
-      // "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+      "userDataDir": false,
       "sourceMapPathOverrides": {
         "/@fs/*": "${webRoot}/*",
         "/@vite/*": "${webRoot}/node_modules/vite/*",
@@ -32,7 +35,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Vitest Tests",
+      "name": "Vitest",
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
@@ -43,13 +46,25 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Current Test File",
+      "name": "Current Test File",
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
       "args": ["run", "${relativeFile}", "--threads", "false"],
       "smartStep": true,
       "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "chromeProfile",
+      "type": "pickString",
+      "description": "Select the Chrome profile",
+      "options": [
+        "Default",
+        "Profile 1",
+      ],
+      "default": "Default"
     }
   ]
 }
