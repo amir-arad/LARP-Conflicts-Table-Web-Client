@@ -23,10 +23,7 @@ export function usePresence(namespace: string) {
   const [presence, setPresence] = useState<PresenceState>({});
   const [locks, setLocks] = useState<LocksState>({});
 
-  const userId = useMemo(
-    () => (access_token ? `user-${btoa(access_token).slice(0, 8)}` : null),
-    [access_token]
-  );
+  const userId = (firebaseUser?.email || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
 
   const emitPresenceEvent = useCallback(
     (userId: string, presence: Presence, type: PresenceEventType) => {
