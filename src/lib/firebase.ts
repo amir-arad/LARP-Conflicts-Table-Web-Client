@@ -1,11 +1,4 @@
-import {
-  CollaborationState,
-  HeartbeatConfig,
-  HeartbeatError,
-  LockInfo,
-  LocksState,
-  Presence,
-} from "./collaboration";
+import { FirebaseApp, initializeApp } from "firebase/app";
 import {
   Database,
   DatabaseReference,
@@ -13,7 +6,6 @@ import {
   getDatabase,
   goOffline,
   goOnline,
-  off,
   onDisconnect,
   onValue,
   orderByChild,
@@ -22,9 +14,16 @@ import {
   remove,
   serverTimestamp,
   set,
-  update,
+  update
 } from "firebase/database";
-import { FirebaseApp, initializeApp } from "firebase/app";
+import {
+  CollaborationState,
+  HeartbeatConfig,
+  HeartbeatError,
+  LockInfo,
+  LocksState,
+  Presence,
+} from "./collaboration";
 
 let firebaseApp: FirebaseApp | null = null;
 let database: Database | null = null;
@@ -59,11 +58,16 @@ export const subscribeToPath = (
   const reference = getDatabaseRef(path);
   if (!reference) return () => {};
 
-  onValue(reference, (snapshot) => {
+  if (import.meta.env.DEV) console.log("subscribing to path", path);
+  const unsubscribe = onValue(reference, (snapshot) => {
+    if (import.meta.env.DEV) console.log("got snapshot", path, snapshot.val());
     callback(snapshot.val());
   });
 
-  return () => off(reference);
+  return () => {
+    if (import.meta.env.DEV) console.log("un-subscribing from path", path);
+    unsubscribe();
+  };
 };
 
 export const updateData = async (path: string, data: any): Promise<void> => {
@@ -106,36 +110,33 @@ export const connectionManager = {
     }
   },
 
-    setupPresenceHeartbeat: (
-      sheetId: string,
-      userId: string,
-      presenceData: Partial<Presence>,
-      config: HeartbeatConfig = {
-        interval: 30000,
-        maxRetries: 3,
-        retryDelay: 5000,
-      },
-      onError?: (error: HeartbeatError) => void
-    ) => {
-      const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
-      if (!presenceRef) return;
+  setupPresenceHeartbeat: (
+    presenceRef: DatabaseReference,
+    presenceData: Partial<Presence>,
+    config: HeartbeatConfig = {
+      interval: 30000,
+      maxRetries: 3,
+      retryDelay: 5000,
+    },
+    onError?: (error: HeartbeatError) => void
+  ) => {
+    if (!presenceRef) return;
+    let retryCount = 0;
+    let retryTimeout: NodeJS.Timeout | null = null;
 
-      let retryCount = 0;
-      let retryTimeout: NodeJS.Timeout | null = null;
-
-      const updatePresence = async () => {
-        try {
-          await set(presenceRef, {
-            ...presenceData,
-            lastActive: serverTimestamp(),
-            updateType: 'heartbeat',
-          });
+    const updatePresence = async () => {
+      try {
+        await set(presenceRef, {
+          ...presenceData,
+          lastActive: serverTimestamp(),
+          updateType: "heartbeat",
+        });
         retryCount = 0; // Reset retry count on success
       } catch (error) {
         retryCount++;
         const heartbeatError: HeartbeatError = {
-          code: 'HEARTBEAT_FAILED',
-          message: 'Failed to update presence',
+          code: "HEARTBEAT_FAILED",
+          message: "Failed to update presence",
           details: error,
           timestamp: Date.now(),
           retryCount,
@@ -235,18 +236,15 @@ export const realtimeDB = {
      * Update user presence data
      */
     updateUserPresence: async (
-      sheetId: string,
-      userId: string,
+      presenceRef: DatabaseReference,
       data: Partial<CollaborationState["presence"][string]>
     ): Promise<void> => {
-      const presenceRef = getDatabaseRef(getPresencePath(sheetId, userId));
       if (!presenceRef) return;
 
       await update(presenceRef, {
         ...data,
-        userId, 
         lastActive: serverTimestamp(),
-        updateType: 'state_change',
+        updateType: "state_change",
       });
     },
 

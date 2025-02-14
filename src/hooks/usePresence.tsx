@@ -4,10 +4,7 @@ import {
   DEFAULT_HEARTBEAT_CONFIG,
   LocksState,
   Presence,
-  PresenceEvent,
-  PresenceEventType,
   PresenceState,
-  PresenceSubscriber,
 } from "../lib/collaboration";
 import {
   connectionManager,
@@ -16,72 +13,25 @@ import {
   setupDisconnectCleanup,
 } from "../lib/firebase";
 
-
 export function usePresence(namespace: string) {
-  const { access_token, firebaseUser, isReady } = useAuth();
-  const presenceSubscribers = useRef<Set<PresenceSubscriber>>(new Set());
+  const { firebaseUser, isReady } = useAuth();
   const [presence, setPresence] = useState<PresenceState>({});
   const [locks, setLocks] = useState<LocksState>({});
-
-  const userId = (firebaseUser?.email || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
-
-  const emitPresenceEvent = useCallback(
-    (userId: string, presence: Presence, type: PresenceEventType) => {
-      const event: PresenceEvent = {
-        type,
-        userId,
-        presence,
-        timestamp: Date.now(),
-      };
-      presenceSubscribers.current.forEach((subscriber) => {
-        try {
-          subscriber(event);
-        } catch (error) {
-          console.error("Error in presence subscriber:", error);
-        }
-      });
-    },
-    []
-  );
+  const heartbeatCleanup = useRef(() => {});
+  const userId = firebaseUser?.uid || "unknown";
 
   const handlePresenceUpdate = useCallback(
     (data: PresenceState | null) => {
-      const newPresence = data || {};
-      const joined = new Set<string>();
-      const left = new Set(Object.keys(presence));
-      const updated = new Set<string>();
-      
-      for (const userId of Object.keys(newPresence)) {
-        const newUserData = newPresence[userId];
-        if (left.delete(userId)) {
-          // User already exists
-          if (newUserData.updateType === 'state_change') {
-            updated.add(userId);
-          }
-        } else if (newUserData.updateType === 'state_change') {
-          // Only add to joined if it's a state change, not a heartbeat
-          joined.add(userId);
-        }
-      }
-      
-      for (const userId of left) {
-        emitPresenceEvent(userId, presence[userId], "left");
-      }
-      for (const userId of joined) {
-        emitPresenceEvent(userId, newPresence[userId], "joined");
-      }
-      for (const userId of updated) {
-        emitPresenceEvent(userId, newPresence[userId], "updated");
-      }
-      setPresence(newPresence);
+      if (import.meta.env.DEV) console.log("onPresence", data);
+      setPresence(data || {});
     },
-    [emitPresenceEvent]
+    [setPresence]
   );
-
   // Subscription effect
   useEffect(() => {
-    if (!namespace || !access_token || !isReady) return;
+    if (!namespace || !isReady) return;
 
+    if (import.meta.env.DEV) console.log("usePresence subscribing", namespace);
     const unsubPresence = realtimeDB.presence.subscribeToPresence(
       namespace,
       handlePresenceUpdate
@@ -93,21 +43,30 @@ export function usePresence(namespace: string) {
     );
 
     return () => {
+      if (import.meta.env.DEV)
+        console.log("usePresence un-subscribing", namespace);
       unsubPresence();
       unsubLocks();
     };
-  }, [namespace, access_token, isReady, handlePresenceUpdate]);
+  }, [namespace, isReady, handlePresenceUpdate, setLocks]);
+
+  // Memoize user info to prevent unnecessary re-renders
+  const userInfo = useMemo(() => ({
+    name: firebaseUser?.displayName || "Anonymous",
+    photoUrl: firebaseUser?.photoURL || "",
+  }), [firebaseUser?.displayName, firebaseUser?.photoURL]);
 
   const registerPresence = useCallback(
     (presenceData: Pick<Presence, "activeCell">) => {
-      if (!namespace || !access_token || !userId || !isReady) {
+      if (!namespace || !userId || !isReady) {
         throw new Error("Cannot register presence without namespace and auth");
       }
+
       const fullPresence = {
         ...presenceData,
-        name: firebaseUser?.displayName || "Anonymous",
-        photoUrl: firebaseUser?.photoURL || "",
-      }
+        ...userInfo,
+      };
+
       const presenceRef = getDatabaseRef(
         `sheets/${namespace}/presence/${userId}`
       );
@@ -118,39 +77,32 @@ export function usePresence(namespace: string) {
       setupDisconnectCleanup(presenceRef, null)
         .then(() =>
           realtimeDB.presence.updateUserPresence(
-            namespace,
-            userId,
+            presenceRef,
             fullPresence
           )
         )
         .catch((error) => {
           console.error("Failed to register presence", error);
         });
-      return connectionManager.setupPresenceHeartbeat(
-        namespace,
-        userId,
+
+      heartbeatCleanup.current?.();
+      const cleanup = connectionManager.setupPresenceHeartbeat(
+        presenceRef,
         fullPresence,
-        DEFAULT_HEARTBEAT_CONFIG
-      );
-    },
-    [namespace, access_token, userId, isReady]
-  );
-
-  const subscribeToPresence = useCallback(
-    (subscriber: PresenceSubscriber, eventTypes?: PresenceEventType[]) => {
-      const wrappedSubscriber: PresenceSubscriber = (event) => {
-        if (!eventTypes || eventTypes.includes(event.type)) {
-          subscriber(event);
+        { ...DEFAULT_HEARTBEAT_CONFIG },
+        (error) => {
+          console.error("Failed to update presence", error);
         }
-      };
+      );
 
-      presenceSubscribers.current.add(wrappedSubscriber);
-      return () => {
-        presenceSubscribers.current.delete(wrappedSubscriber);
-      };
+      heartbeatCleanup.current = cleanup ?? (() => {});
     },
-    []
+    [namespace, userId, isReady, userInfo]
   );
+
+  const unregisterPresence = useCallback(() => {
+    heartbeatCleanup.current?.();
+  }, []);
 
   // Memoize return object to prevent unnecessary rerenders
   const returnValue = useMemo(
@@ -158,10 +110,9 @@ export function usePresence(namespace: string) {
       presence,
       locks,
       registerPresence,
-      unregisterPresence: () => {}, // Empty function since cleanup is handled elsewhere
-      subscribeToPresence,
+      unregisterPresence,
     }),
-    [presence, locks, registerPresence, subscribeToPresence]
+    [presence, locks, registerPresence, unregisterPresence]
   );
 
   return returnValue;

@@ -1,64 +1,20 @@
-import { useEffect, useState } from "react";
-import type { usePresence as originalUsePresence } from "../../hooks/usePresence";
 import {
   DEFAULT_HEARTBEAT_CONFIG,
   Presence,
-  PresenceEvent,
+  PresenceState
 } from "../../lib/collaboration";
 import { cn } from "../../lib/utils";
 
-export type DisplayPresenceHook = (
-  namespace: string
-) => Pick<
-  ReturnType<typeof originalUsePresence>,
-  "presence" | "subscribeToPresence"
->;
 interface ActiveUsersListProps {
   className?: string;
-  sheetId: string;
-  usePresenceHook: DisplayPresenceHook;
+  presence: PresenceState;
 }
 
-export function ActiveUsersList({
-  className,
-  sheetId,
-  usePresenceHook,
-}: ActiveUsersListProps) {
-  const { presence, subscribeToPresence } = usePresenceHook(sheetId);
-  const [newUsers, setNewUsers] = useState<string[]>([]);
-  const [staleUsers, setStaleUsers] = useState<string[]>([]);
-
-  useEffect(() => {
-    const handlePresenceEvent = (event: PresenceEvent) => {
-      if (event.type === "joined") {
-        setNewUsers((prev) => [...new Set([...prev, event.userId])]);
-        setStaleUsers((prev) => prev.filter((id) => id !== event.userId));
-        // Clear the new user animation after a delay
-        setTimeout(
-          () => setNewUsers((prev) => prev.filter((id) => id !== event.userId)),
-          1000 // Shorter animation time for better UX
-        );
-      } else if (event.type === "left") {
-        setStaleUsers((prev) => [...prev, event.userId]);
-      } else if (event.type === "updated") {
-        // Remove from stale users if they update
-        setStaleUsers((prev) => prev.filter((id) => id !== event.userId));
-      }
-    };
-
-    // Subscribe to all presence events to maintain state
-    return subscribeToPresence(handlePresenceEvent, [
-      "joined",
-      "left",
-      "updated",
-    ]);
-  }, [subscribeToPresence]);
-
+export function ActiveUsersList({ className, presence }: ActiveUsersListProps) {
   // Filter and sort users
   const usersIter = Object.entries(presence as Record<string, Presence>)
     .filter(([id, user]) => {
       // Filter out stale users and those whose last activity is too old
-      if (staleUsers.includes(id)) return false;
       const timeSinceLastActive = Date.now() - user.lastActive;
       return (
         timeSinceLastActive <=
@@ -68,7 +24,7 @@ export function ActiveUsersList({
     .map(([id, user]) => ({
       id,
       user,
-      isNew: newUsers.indexOf(id) >= 0,
+      isNew: false,
     }))
     .sort((a, b) => b.user.lastActive - a.user.lastActive); // Most recently active first
 

@@ -1,9 +1,10 @@
 import { Filter, Link, Plus } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActiveUsersList } from "./ui/active-users-list";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { EditableTableCell, MotivationTableCell } from "./ui/table-cell";
+import { MotivationTableCell } from "./ui/motivation-table-cell";
+import { EditableTableCell } from "./ui/table-cell";
 
 import { useAuth } from "../contexts/AuthContext";
 import { useConflictsTable } from "../hooks/useConflictsTable";
@@ -15,14 +16,18 @@ interface ConflictsTableToolProps {
   sheetId: string;
 }
 
-const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
-  const { access_token, firebaseUser, isReady } = useAuth();
-  const { registerPresence, unregisterPresence } = usePresence(sheetId);
-  const { t } = useTranslations();
-
-  if (!access_token) {
-    return <div>{t("app.loading")}</div>;
+declare global {
+  interface Window {
+    gapi: typeof gapi;
   }
+}
+
+const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
+  const { access_token, isReady } = useAuth();
+  const { registerPresence, unregisterPresence, locks, presence } =
+    usePresence(sheetId);
+  const [activeCell, setActiveCell] = useState<string | null>(null);
+  const { t } = useTranslations();
 
   const [roleFilters, toggleRoleFilter] = useFlags({
     namespace: `${sheetId}-roleFilters`,
@@ -47,8 +52,8 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     updateRoleName,
   } = useConflictsTable({
     sheetId: sheetId,
-    token: access_token,
-    gapi: window.gapi,
+    token: access_token || '',
+    gapi: window?.gapi,
   });
 
   useEffect(() => {
@@ -58,21 +63,11 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
   }, [access_token, sheetId, loadData]);
 
   useEffect(() => {
-    if (isReady && access_token && sheetId && firebaseUser) {
-      registerPresence({ activeCell: null });
-
-      return () => {
-        unregisterPresence();
-      };
+    if (isReady) {
+      registerPresence({ activeCell });
+      return unregisterPresence;
     }
-  }, [
-    isReady,
-    access_token,
-    sheetId,
-    firebaseUser,
-    registerPresence,
-    unregisterPresence,
-  ]);
+  }, [isReady, activeCell, registerPresence, unregisterPresence]);
 
   const handleAddConflict = useCallback(
     () => addConflict(t("table.newConflict")),
@@ -84,6 +79,10 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     [addRole, t]
   );
 
+  if (!access_token || isLoading) {
+    return <div>{t("app.loading")}</div>;
+  }
+
   const filteredRoles = roles.filter(
     (role) => roleFilters.length === 0 || roleFilters.includes(role.cellRef)
   );
@@ -93,17 +92,13 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
       conflictFilters.length === 0 || conflictFilters.includes(conflict.cellRef)
   );
 
-  if (isLoading) {
-    return <div>{t("app.loading")}</div>;
-  }
-
   return (
     <div className="p-4 max-w-full overflow-x-auto">
       <Card className="mb-4">
         <CardHeader>
           <div className="flex justify-between items-center gap-4 [dir='rtl']:flex-row-reverse">
             <CardTitle>{t("app.title")}</CardTitle>
-            <ActiveUsersList usePresenceHook={usePresence} sheetId={sheetId} className="flex-1 max-w-md" />
+            <ActiveUsersList presence={presence} className="flex-1 max-w-md" />
             <a
               href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
               target="_blank"
@@ -193,62 +188,81 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                     isHeader
                     content={t("table.header")}
                     sheetId={sheetId}
-                    rowIndex={0}
-                    colIndex={0}
+                    cellId="cell-0-0"
                   />
-                  {filteredRoles.map((role, roleIndex) => (
-                    <EditableTableCell
-                      key={role.cellRef}
-                      isHeader
-                      content={role.value}
-                      onUpdate={(newContent) =>
-                        updateRoleName(role.cellRef, newContent)
-                      }
-                      showDelete
-                      onDelete={() => removeRole(role.cellRef)}
-                      rowIndex={0}
-                      colIndex={roleIndex + 1}
-                      sheetId={sheetId}
-                    />
-                  ))}
+                  {filteredRoles.map((role, roleIndex) => {
+                    const cellId = `cell-0-${roleIndex + 1}`;
+                    return (
+                      <EditableTableCell
+                        key={role.cellRef}
+                        isHeader
+                        content={role.value}
+                        onUpdate={(newContent) =>
+                          updateRoleName(role.cellRef, newContent)
+                        }
+                        onDelete={() => removeRole(role.cellRef)}
+                        onFocusChange={(isFocused) => {
+                          setActiveCell(isFocused ? cellId : null);
+                        }}
+                        cellId={cellId}
+                        sheetId={sheetId}
+                        lockInfo={locks[cellId]}
+                        presence={presence}
+                      />
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
-                {filteredConflicts.map((conflict, conflictIndex) => (
-                  <tr key={conflict.cellRef}>
-                    <EditableTableCell
-                      content={conflict.value}
-                      onUpdate={(newContent) =>
-                        updateConflictName(conflict.cellRef, newContent)
-                      }
-                      showDelete
-                      onDelete={() => removeConflict(conflict.cellRef)}
-                      className="bg-gray-50"
-                      rowIndex={conflictIndex + 1}
-                      colIndex={0}
-                      sheetId={sheetId}
-                    />
-                    {filteredRoles.map((role, roleIndex) => {
-                      const motivation = conflict.motivations[role.cellRef];
-                      return (
-                        <MotivationTableCell
-                          key={`${conflict.cellRef}-${role.cellRef}`}
-                          content={motivation?.value || ""}
-                          onUpdate={(newContent) =>
-                            updateMotivation(
-                              conflict.cellRef,
-                              role.cellRef,
-                              newContent
-                            )
-                          }
-                          rowIndex={conflictIndex + 1}
-                          colIndex={roleIndex + 1}
-                          sheetId={sheetId}
-                        />
-                      );
-                    })}
-                  </tr>
-                ))}
+                {filteredConflicts.map((conflict, conflictIndex) => {
+                  const headerCellId = `cell-${conflictIndex + 1}-0`;
+                  return (
+                    <tr key={conflict.cellRef}>
+                      <EditableTableCell
+                        content={conflict.value}
+                        onUpdate={(newContent) =>
+                          updateConflictName(conflict.cellRef, newContent)
+                        }
+                        scope="row"
+                        isHeader
+                        onDelete={() => removeConflict(conflict.cellRef)}
+                        onFocusChange={(isFocused) => {
+                          setActiveCell(isFocused ? headerCellId : null);
+                        }}
+                        cellId={headerCellId}
+                        sheetId={sheetId}
+                        lockInfo={locks[headerCellId]}
+                        presence={presence}
+                      />
+                      {filteredRoles.map((role, roleIndex) => {
+                        const motivation = conflict.motivations[role.cellRef];
+                        const cellId = `cell-${conflictIndex + 1}-${
+                          roleIndex + 1
+                        }`;
+                        return (
+                          <MotivationTableCell
+                            key={cellId}
+                            cellId={cellId}
+                            content={motivation?.value || ""}
+                            onUpdate={(newContent) =>
+                              updateMotivation(
+                                conflict.cellRef,
+                                role.cellRef,
+                                newContent
+                              )
+                            }
+                            onFocusChange={(isFocused) => {
+                              setActiveCell(isFocused ? cellId : null);
+                            }}
+                            sheetId={sheetId}
+                            lockInfo={locks[cellId]}
+                            presence={presence}
+                          />
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

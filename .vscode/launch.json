@@ -4,13 +4,32 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Web app",
+      "name": "Web app 1",
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}",
       "sourceMaps": true,
+      "port": 9223,
       "userDataDir": false,
       "runtimeArgs": [
-        "--profile-directory=${input:chromeProfile}"
+        "--profile-directory=Default"
+      ],
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${webRoot}/*",
+        "/@vite/*": "${webRoot}/node_modules/vite/*",
+        "/src/*": "${webRoot}/src/*"
+      }
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Web app 2",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "port": 9222,
+      "userDataDir": false,
+      "runtimeArgs": [
+        "--profile-directory=Profile 1"
       ],
       "sourceMapPathOverrides": {
         "/@fs/*": "${webRoot}/*",
@@ -55,16 +74,4 @@
       "console": "integratedTerminal"
     }
   ],
-  "inputs": [
-    {
-      "id": "chromeProfile",
-      "type": "pickString",
-      "description": "Select the Chrome profile",
-      "options": [
-        "Default",
-        "Profile 1",
-      ],
-      "default": "Default"
-    }
-  ]
 }

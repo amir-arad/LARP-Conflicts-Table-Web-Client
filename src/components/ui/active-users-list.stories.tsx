@@ -1,18 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ActiveUsersList, DisplayPresenceHook } from "./active-users-list";
-import type {
-  Presence,
-  PresenceEvent,
-  PresenceEventType,
-  PresenceState,
-  PresenceSubscriber,
-} from "../../lib/collaboration";
+import { useCallback, useEffect, useState } from "react";
+import type { Presence, PresenceState } from "../../lib/collaboration";
+import { ActiveUsersList } from "./active-users-list";
 
 type StoryProps = {
   className?: string;
   sheetId: string;
-  usePresenceHook: DisplayPresenceHook;
+  presence: PresenceState;
   initialUsers?: Array<{
     id: string;
     data: Partial<Omit<Presence, "updateType" | "lastActive">>;
@@ -22,40 +16,36 @@ type StoryProps = {
 // Create a mock hook factory for stories
 const usePresenceMock = () => {
   const [presence, setPresence] = useState<PresenceState>({});
-  const subscribers = useRef<Set<PresenceSubscriber>>(new Set());
+  const [newUsers, setNewUsers] = useState<string[]>([]);
+  const [staleUsers, setStaleUsers] = useState<string[]>([]);
 
-  const subscribeToPresence = useCallback(
-    (s: PresenceSubscriber, eventTypes?: PresenceEventType[]) => {
-      const wrappedSubscriber: PresenceSubscriber = (event) => {
-        if (!eventTypes || eventTypes.includes(event.type)) {
-          s(event);
-        }
-      };
-
-      subscribers.current.add(wrappedSubscriber);
-      return () => {
-        subscribers.current.delete(wrappedSubscriber);
-      };
+  const handleUserChange = useCallback(
+    (userId: string, type: "joined" | "left" | "updated") => {
+      if (type === "joined") {
+        setNewUsers((prev) => [...new Set([...prev, userId])]);
+        setStaleUsers((prev) => prev.filter((id) => id !== userId));
+        setTimeout(
+          () => setNewUsers((prev) => prev.filter((id) => id !== userId)),
+          1000
+        );
+      } else if (type === "left") {
+        setStaleUsers((prev) => [...prev, userId]);
+      } else if (type === "updated") {
+        setStaleUsers((prev) => prev.filter((id) => id !== userId));
+      }
     },
     []
   );
-  const emitPresenceEvent = useCallback((event: PresenceEvent) => {
-    subscribers.current.forEach((s) => {
-      try {
-        s(event);
-      } catch (error) {
-        console.error("Error in presence subscriber:", error);
-      }
-    });
-  }, []);
+
   const usePresence = useCallback(
     (_: string) => ({
       presence,
-      subscribeToPresence,
+      newUsers,
+      staleUsers,
     }),
-    [presence, subscribeToPresence]
+    [presence, newUsers, staleUsers]
   );
-  return { usePresence, setPresence, emitPresenceEvent };
+  return { usePresence, setPresence, handleUserChange };
 };
 
 const meta = {
@@ -66,14 +56,14 @@ const meta = {
   },
   decorators: [
     (Story, context) => {
-      const { usePresence, setPresence, emitPresenceEvent } = usePresenceMock();
+      const { usePresence, setPresence, handleUserChange } = usePresenceMock();
       const { presence } = usePresence("");
       const [userCounter, setUserCounter] = useState(0);
 
       const addUser = useCallback(() => {
-        const userId = `user${userCounter+1}`;
+        const userId = `user${userCounter + 1}`;
         const newUser = {
-          name: `User ${userCounter+1}`,
+          name: `User ${userCounter + 1}`,
           photoUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
           activeCell: null,
           lastActive: Date.now(),
@@ -84,32 +74,22 @@ const meta = {
           [userId]: newUser,
         }));
         setUserCounter((v) => v + 1);
-        emitPresenceEvent({
-          type: "joined",
-          userId,
-          presence: newUser,
-          timestamp: Date.now(),
-        });
-      }, [userCounter, setPresence, emitPresenceEvent]);
+        handleUserChange(userId, "joined");
+      }, [userCounter, setPresence, handleUserChange]);
 
       const removeUser = useCallback(() => {
         const users = Object.entries(presence);
         if (users.length === 0) return;
 
-        const [userId, userData] = users[users.length - 1];
+        const [userId] = users[users.length - 1];
         setPresence((prev) => {
           const next = { ...prev };
           delete next[userId];
           return next;
         });
         setUserCounter((v) => v - 1);
-        emitPresenceEvent({
-          type: "left",
-          userId,
-          presence: userData,
-          timestamp: Date.now(),
-        });
-      }, [presence, setPresence, emitPresenceEvent]);
+        handleUserChange(userId, "left");
+      }, [presence, setPresence, handleUserChange]);
 
       const updateUser = useCallback(() => {
         const users = Object.entries(presence);
@@ -125,13 +105,8 @@ const meta = {
           ...prev,
           [userId]: updatedUser,
         }));
-        emitPresenceEvent({
-          type: "updated",
-          userId,
-          presence: updatedUser,
-          timestamp: Date.now(),
-        });
-      }, [presence, setPresence, emitPresenceEvent]);
+        handleUserChange(userId, "updated");
+      }, [presence, setPresence, handleUserChange]);
 
       const toggleCell = useCallback(() => {
         const users = Object.entries(presence);
@@ -152,15 +127,9 @@ const meta = {
           ...prev,
           [userId]: updatedUser,
         }));
-        emitPresenceEvent({
-          type: "updated",
-          userId,
-          presence: updatedUser,
-          timestamp: Date.now(),
-        });
-      }, [presence, setPresence, emitPresenceEvent]);
+        handleUserChange(userId, "updated");
+      }, [presence, setPresence, handleUserChange]);
 
-      
       // Initialize presence state
       useEffect(() => {
         const args = context.args as StoryProps;
@@ -208,7 +177,7 @@ const meta = {
               Toggle Cell
             </button>
           </div>
-          <Story args={{ ...context.args, usePresenceHook: usePresence }} />
+          <Story args={{ ...context.args, presence }} />
         </div>
       );
     },
