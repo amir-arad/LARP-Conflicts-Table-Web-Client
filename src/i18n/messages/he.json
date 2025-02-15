@@ -16,5 +16,8 @@
   "status.disconnected": "מנותק",
   "action.initializing": "מאתחל...",
   "error.connection": "שגיאת חיבור",
-  "action.reconnect": "התחבר מחדש"
+  "action.reconnect": "התחבר מחדש",
+  "error.somethingWentWrong": "משהו השתבש",
+  "error.tryAgainLater": "אירעה שגיאה. אנא נסה שוב מאוחר יותר.",
+  "error.tryAgain": "נסה שוב"
 }

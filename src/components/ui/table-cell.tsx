@@ -1,10 +1,11 @@
-import * as React from "react";
+import * as React from 'react';
 
-import { Trash2 } from "lucide-react";
-import { useRtlUtils } from "../../hooks/useRtlUtils";
-import { PresenceState, LockInfo } from "../../lib/collaboration";
-import { cn } from "../../lib/utils";
-import { LockIndicator } from "./lock-indicator";
+import { LockInfo, PresenceState } from '../../lib/collaboration';
+
+import { LockIndicator } from './lock-indicator';
+import { Trash2 } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import { useRtlUtils } from '../../hooks/useRtlUtils';
 
 interface EditableTableCellProps
   extends React.TdHTMLAttributes<HTMLTableCellElement> {
@@ -14,7 +15,6 @@ interface EditableTableCellProps
   onFocusChange?: (isFocused: boolean) => void;
   isHeader?: boolean;
   cellId: string;
-  sheetId: string;
   lockInfo?: LockInfo;
   presence?: PresenceState;
 }
@@ -30,7 +30,6 @@ export const EditableTableCell = React.forwardRef<
       onDelete,
       onFocusChange,
       isHeader = false,
-      sheetId,
       cellId,
       lockInfo,
       presence,
@@ -40,7 +39,7 @@ export const EditableTableCell = React.forwardRef<
   ) => {
     const { getContentClass, getTextDirection } = useRtlUtils();
 
-    const Element = isHeader ? "th" : "td";
+    const Element = isHeader ? 'th' : 'td';
     const lockOwner = presence?.[lockInfo?.userId ?? ''] ?? null;
 
     return (
@@ -48,10 +47,10 @@ export const EditableTableCell = React.forwardRef<
         ref={ref}
         id={cellId}
         className={cn(
-          "border p-2 relative group",
-          isHeader && "bg-gray-100",
+          'border p-2 relative group',
+          isHeader && 'bg-gray-100',
           getContentClass(content),
-          lockInfo && "border-red-400"
+          lockInfo && 'border-red-400'
         )}
         dir={getTextDirection(content)}
         {...props}
@@ -64,13 +63,13 @@ export const EditableTableCell = React.forwardRef<
             onFocus={() => {
               onFocusChange?.(true);
             }}
-            onBlur={(e) => {
+            onBlur={e => {
               onFocusChange?.(false);
-              onUpdate?.(e.target.textContent || "");
+              onUpdate?.(e.target.textContent || '');
             }}
             className={cn(
-              "flex-1",
-              onUpdate && "focus:outline-none focus:bg-blue-50"
+              'flex-1',
+              onUpdate && 'focus:outline-none focus:bg-blue-50'
             )}
           >
             {content}
@@ -88,4 +87,4 @@ export const EditableTableCell = React.forwardRef<
     );
   }
 );
-EditableTableCell.displayName = "EditableTableCell";
+EditableTableCell.displayName = 'EditableTableCell';

@@ -1,8 +1,8 @@
-import { IntlProvider } from "react-intl";
-import React from "react";
-import en from "./messages/en.json";
-import he from "./messages/he.json";
-import { useLanguage } from "../contexts/LanguageContext";
+import { IntlProvider } from 'react-intl';
+import React from 'react';
+import en from './messages/en.json';
+import he from './messages/he.json';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const messages = {
   en,

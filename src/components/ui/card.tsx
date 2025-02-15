@@ -1,7 +1,7 @@
-import * as React from "react";
+import * as React from 'react';
 
-import { cn } from "../../lib/utils";
-import { useRtlUtils } from "../../hooks/useRtlUtils";
+import { cn } from '../../lib/utils';
+import { useRtlUtils } from '../../hooks/useRtlUtils';
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -13,16 +13,16 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
-        isRtl ? "text-right" : "text-left",
+        'rounded-lg border bg-card text-card-foreground shadow-sm',
+        isRtl ? 'text-right' : 'text-left',
         className
       )}
-      dir={isRtl ? "rtl" : "ltr"}
+      dir={isRtl ? 'rtl' : 'ltr'}
       {...props}
     />
   );
 });
-Card.displayName = "Card";
+Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
@@ -34,15 +34,15 @@ const CardHeader = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex flex-col space-y-1.5 p-6",
-        isRtl ? "items-end" : "items-start",
+        'flex flex-col space-y-1.5 p-6',
+        isRtl ? 'items-end' : 'items-start',
         className
       )}
       {...props}
     />
   );
 });
-CardHeader.displayName = "CardHeader";
+CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<
   HTMLDivElement,
@@ -57,7 +57,7 @@ const CardTitle = React.forwardRef<
     {...props}
   />
 ));
-CardTitle.displayName = "CardTitle";
+CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<
   HTMLDivElement,
@@ -72,7 +72,7 @@ const CardDescription = React.forwardRef<
     {...props}
   />
 ));
-CardDescription.displayName = "CardDescription";
+CardDescription.displayName = 'CardDescription';
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
@@ -84,7 +84,7 @@ const CardContent = React.forwardRef<
     {...props}
   />
 ));
-CardContent.displayName = "CardContent";
+CardContent.displayName = 'CardContent';
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,
@@ -99,7 +99,7 @@ const CardFooter = React.forwardRef<
     {...props}
   />
 ));
-CardFooter.displayName = "CardFooter";
+CardFooter.displayName = 'CardFooter';
 
 export {
   Card,

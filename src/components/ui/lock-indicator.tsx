@@ -1,7 +1,7 @@
-import * as React from "react";
+import * as React from 'react';
 
-import { Lock } from "lucide-react";
-import type { LockInfo, Presence } from "../../lib/collaboration";
+import { Lock } from 'lucide-react';
+import type { LockInfo, Presence } from '../../lib/collaboration';
 
 interface LockIndicatorProps {
   lockInfo: LockInfo | undefined;

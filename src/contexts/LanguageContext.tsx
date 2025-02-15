@@ -4,16 +4,16 @@ import React, {
   useContext,
   useEffect,
   useState,
-} from "react";
+} from 'react';
 
-export type Direction = "ltr" | "rtl";
-export type Language = "en" | "he";
+export type Direction = 'ltr' | 'rtl';
+export type Language = 'en' | 'he';
 
 function validateLanguage(
   val: string | null,
-  defaultLang: Language = "he"
+  defaultLang: Language = 'he'
 ): Language {
-  if (val === "he" || val === "en") return val;
+  if (val === 'he' || val === 'en') return val;
   if (val) {
     console.error(`Invalid language: ${val}`);
   }
@@ -31,17 +31,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageInner] = useState<Language>(() =>
     validateLanguage(localStorage.getItem(`language`))
   );
-  const [direction, setDirection] = useState<Direction>("ltr");
+  const [direction, setDirection] = useState<Direction>('ltr');
 
   useEffect(() => {
     localStorage.setItem(`language`, language);
-    setDirection(language === "he" ? "rtl" : "ltr");
-    document.documentElement.dir = language === "he" ? "rtl" : "ltr";
+    setDirection(language === 'he' ? 'rtl' : 'ltr');
+    document.documentElement.dir = language === 'he' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);
 
   const setLanguage = useCallback((lang: string) => {
-    setLanguageInner((oldVal) => validateLanguage(lang, oldVal));
+    setLanguageInner(oldVal => validateLanguage(lang, oldVal));
   }, []);
 
   const value = {
@@ -60,7 +60,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === null) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+    throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
 }

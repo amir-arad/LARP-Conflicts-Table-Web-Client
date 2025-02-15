@@ -9,7 +9,9 @@
             "name": { ".validate": "newData.isString()" },
             "photoUrl": { ".validate": "newData.isString()" },
             "lastActive": { ".validate": "newData.isNumber()" },
-            "activeCell": { ".validate": "newData.isString() || newData.val() == null" }
+            "activeCell": {
+              ".validate": "newData.isString() || newData.val() == null"
+            }
           }
         },
         "locks": {
@@ -18,7 +20,9 @@
             ".write": true,
             "userId": { ".validate": "newData.isString()" },
             "acquired": { ".validate": "newData.isNumber()" },
-            "expires": { ".validate": "newData.isNumber() && newData.val() > now" }
+            "expires": {
+              ".validate": "newData.isNumber() && newData.val() > now"
+            }
           }
         }
       }

@@ -1,28 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import {
   DEFAULT_HEARTBEAT_CONFIG,
   LocksState,
   Presence,
   PresenceState,
-} from "../lib/collaboration";
+} from '../lib/collaboration';
 import {
   connectionManager,
   getDatabaseRef,
   realtimeDB,
   setupDisconnectCleanup,
-} from "../lib/firebase";
+} from '../lib/firebase';
 
 export function usePresence(namespace: string) {
   const { firebaseUser, isReady } = useAuth();
   const [presence, setPresence] = useState<PresenceState>({});
   const [locks, setLocks] = useState<LocksState>({});
   const heartbeatCleanup = useRef(() => {});
-  const userId = firebaseUser?.uid || "unknown";
+  const userId = firebaseUser?.uid || 'unknown';
 
   const handlePresenceUpdate = useCallback(
     (data: PresenceState | null) => {
-      if (import.meta.env.DEV) console.log("onPresence", data);
+      if (import.meta.env.DEV) console.log('onPresence', data);
       setPresence(data || {});
     },
     [setPresence]
@@ -31,35 +31,37 @@ export function usePresence(namespace: string) {
   useEffect(() => {
     if (!namespace || !isReady) return;
 
-    if (import.meta.env.DEV) console.log("usePresence subscribing", namespace);
+    if (import.meta.env.DEV) console.log('usePresence subscribing', namespace);
     const unsubPresence = realtimeDB.presence.subscribeToPresence(
       namespace,
       handlePresenceUpdate
     );
 
-    const unsubLocks = realtimeDB.locks.subscribeToCellLocks(
-      namespace,
-      (data) => setLocks(data || {})
+    const unsubLocks = realtimeDB.locks.subscribeToCellLocks(namespace, data =>
+      setLocks(data || {})
     );
 
     return () => {
       if (import.meta.env.DEV)
-        console.log("usePresence un-subscribing", namespace);
+        console.log('usePresence un-subscribing', namespace);
       unsubPresence();
       unsubLocks();
     };
   }, [namespace, isReady, handlePresenceUpdate, setLocks]);
 
   // Memoize user info to prevent unnecessary re-renders
-  const userInfo = useMemo(() => ({
-    name: firebaseUser?.displayName || "Anonymous",
-    photoUrl: firebaseUser?.photoURL || "",
-  }), [firebaseUser?.displayName, firebaseUser?.photoURL]);
+  const userInfo = useMemo(
+    () => ({
+      name: firebaseUser?.displayName || 'Anonymous',
+      photoUrl: firebaseUser?.photoURL || '',
+    }),
+    [firebaseUser?.displayName, firebaseUser?.photoURL]
+  );
 
   const registerPresence = useCallback(
-    (presenceData: Pick<Presence, "activeCell">) => {
+    (presenceData: Pick<Presence, 'activeCell'>) => {
       if (!namespace || !userId || !isReady) {
-        throw new Error("Cannot register presence without namespace and auth");
+        throw new Error('Cannot register presence without namespace and auth');
       }
 
       const fullPresence = {
@@ -71,18 +73,15 @@ export function usePresence(namespace: string) {
         `sheets/${namespace}/presence/${userId}`
       );
       if (!presenceRef) {
-        throw new Error("Failed to get presence reference");
+        throw new Error('Failed to get presence reference');
       }
 
       setupDisconnectCleanup(presenceRef, null)
         .then(() =>
-          realtimeDB.presence.updateUserPresence(
-            presenceRef,
-            fullPresence
-          )
+          realtimeDB.presence.updateUserPresence(presenceRef, fullPresence)
         )
-        .catch((error) => {
-          console.error("Failed to register presence", error);
+        .catch(error => {
+          console.error('Failed to register presence', error);
         });
 
       heartbeatCleanup.current?.();
@@ -90,8 +89,8 @@ export function usePresence(namespace: string) {
         presenceRef,
         fullPresence,
         { ...DEFAULT_HEARTBEAT_CONFIG },
-        (error) => {
-          console.error("Failed to update presence", error);
+        error => {
+          console.error('Failed to update presence', error);
         }
       );
 

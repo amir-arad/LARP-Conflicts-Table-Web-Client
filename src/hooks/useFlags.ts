@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
 interface UseTableFiltersProps {
   namespace: string;
@@ -15,8 +15,8 @@ export const useFlags = ({ namespace }: UseTableFiltersProps) => {
   }, [flags, namespace]);
 
   const toggleFlag = useCallback((key: string) => {
-    setFlags((prev) =>
-      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]
+    setFlags(prev =>
+      prev.includes(key) ? prev.filter(item => item !== key) : [...prev, key]
     );
   }, []);
 

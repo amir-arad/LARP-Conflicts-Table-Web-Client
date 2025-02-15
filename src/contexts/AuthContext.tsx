@@ -1,11 +1,10 @@
-import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import {
+  GoogleAuthProvider,
   User,
   getAuth,
-  GoogleAuthProvider,
   signInWithCredential,
-} from "firebase/auth";
-import { gapi } from "gapi-script";
+} from 'firebase/auth';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 import {
   ReactNode,
   createContext,
@@ -13,10 +12,12 @@ import {
   useContext,
   useEffect,
   useState,
-} from "react";
+} from 'react';
+import { connectionManager, initializeFirebase } from '../lib/firebase';
 
-import { connectionManager, initializeFirebase } from "../lib/firebase";
-import { firebaseConfig } from "../config";
+import { firebaseConfig } from '../config';
+import { gapi } from 'gapi-script';
+
 export enum ClientLoadStatus {
   Loading,
   Loaded,
@@ -43,8 +44,8 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const KEY_ACCESS_TOKEN = "access_token";
-const KEY_ACCESS_TOKEN_EXPIRES = "access_token_expires";
+const KEY_ACCESS_TOKEN = 'access_token';
+const KEY_ACCESS_TOKEN_EXPIRES = 'access_token_expires';
 function readExistingToken() {
   const expirationDate = Number(localStorage.getItem(KEY_ACCESS_TOKEN_EXPIRES));
   if (expirationDate && expirationDate > Date.now()) {
@@ -58,15 +59,16 @@ function readExistingToken() {
 function storeAccessToken(expires_in: number, access_token: string) {
   const expirationDate = Date.now() + 1000 * expires_in;
   localStorage.setItem(KEY_ACCESS_TOKEN, access_token);
-  localStorage.setItem(KEY_ACCESS_TOKEN_EXPIRES, "" + expirationDate);
+  localStorage.setItem(KEY_ACCESS_TOKEN_EXPIRES, '' + expirationDate);
 }
 
+const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
+const discoveryDocs = [
+  'https://sheets.googleapis.com/$discovery/rest?version=v4',
+];
+
 function AuthContext({ children }: { children: ReactNode }) {
-  const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-  const scopes = ["https://www.googleapis.com/auth/spreadsheets"];
-  const discoveryDocs = [
-    "https://sheets.googleapis.com/$discovery/rest?version=v4",
-  ];
   const login = useGoogleLogin({
     onSuccess: ({ access_token, expires_in }) => {
       try {
@@ -76,10 +78,10 @@ function AuthContext({ children }: { children: ReactNode }) {
         setError(error);
       }
     },
-    onError: (errorResponse) => {
+    onError: errorResponse => {
       setError(errorResponse);
     },
-    scope: scopes.join(" "),
+    scope: scopes.join(' '),
   });
 
   const [auth, setAuth] = useState<AuthState>(() => {
@@ -93,24 +95,24 @@ function AuthContext({ children }: { children: ReactNode }) {
       login: () => access_token || login(),
     };
   });
-  
-  if (import.meta.env.DEV) {
-    useEffect(() => {
-      console.log("auth changed", auth);
-    }, [auth]);
-  }
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('auth changed', auth);
+    }
+  }, [auth]);
 
   const setClientStatus = useCallback(
     (clientStatus: ClientLoadStatus, prev: ClientLoadStatus | null) => {
       if (prev !== null && prev !== auth.clientStatus) {
         console.warn(
-          "Client status changed from",
+          'Client status changed from',
           ClientLoadStatus[prev],
-          "to",
+          'to',
           ClientLoadStatus[clientStatus]
         );
       }
-      setAuth((prev) => ({
+      setAuth(prev => ({
         ...prev,
         clientStatus,
         errorStatus: prev.clientStatus,
@@ -120,28 +122,28 @@ function AuthContext({ children }: { children: ReactNode }) {
   );
   const setToken = useCallback(
     (token: string | null) => {
-      setAuth((prev) => ({
+      setAuth(prev => ({
         ...prev,
         access_token: token,
         login: () => token || login(),
       }));
     },
-    [setAuth]
+    [setAuth, login]
   );
   const setFirebaseUser = useCallback(
     (firebaseUser: User | null) => {
-      setAuth((prev) => ({ ...prev, firebaseUser }));
+      setAuth(prev => ({ ...prev, firebaseUser }));
     },
     [setAuth]
   );
   const setError = useCallback(
     (error: unknown) => {
       console.error(
-        "Error during " + ClientLoadStatus[auth.clientStatus],
+        'Error during ' + ClientLoadStatus[auth.clientStatus],
         error
       );
       const errorStatus = auth.clientStatus;
-      setAuth((prev) => {
+      setAuth(prev => {
         if (errorStatus !== prev.clientStatus) return prev as AuthState;
         return {
           ...prev,
@@ -158,7 +160,7 @@ function AuthContext({ children }: { children: ReactNode }) {
     try {
       switch (auth.clientStatus) {
         case ClientLoadStatus.Loading:
-          gapi.load("client", () =>
+          gapi.load('client', () =>
             setClientStatus(
               ClientLoadStatus.Initializing_gapi,
               ClientLoadStatus.Loading
@@ -192,7 +194,7 @@ function AuthContext({ children }: { children: ReactNode }) {
           if (auth.access_token) {
             const { database } = initializeFirebase(firebaseConfig);
             if (!database) {
-              setError(new Error("No firebase database"));
+              setError(new Error('No firebase database'));
               return;
             }
             const firebaseAuth = getAuth();
@@ -201,7 +203,7 @@ function AuthContext({ children }: { children: ReactNode }) {
               auth.access_token
             );
             signInWithCredential(firebaseAuth, firebaseCredential)
-              .then((result) => setFirebaseUser(result.user))
+              .then(result => setFirebaseUser(result.user))
               .then(() =>
                 setClientStatus(
                   ClientLoadStatus.Connecting,
@@ -210,11 +212,11 @@ function AuthContext({ children }: { children: ReactNode }) {
               )
               .catch(setError);
           } else {
-            setError(new Error("No access token"));
+            setError(new Error('No access token'));
           }
           break;
         case ClientLoadStatus.Connecting:
-          const cleanup = connectionManager.monitorConnection((connected) => {
+          return connectionManager.monitorConnection(connected => {
             if (connected) {
               setClientStatus(
                 ClientLoadStatus.Ready,
@@ -228,12 +230,18 @@ function AuthContext({ children }: { children: ReactNode }) {
               );
             }
           });
-          return cleanup;
       }
     } catch (error) {
       setError(error);
     }
-  }, [auth.clientStatus, auth.access_token, auth.firebaseUser, apiKey]);
+  }, [
+    auth.clientStatus,
+    auth.access_token,
+    auth.firebaseUser,
+    setError,
+    setClientStatus,
+    setFirebaseUser,
+  ]);
 
   return <AuthStateCtx.Provider value={auth}>{children}</AuthStateCtx.Provider>;
 }
@@ -249,7 +257,7 @@ export function AuthProvider({ children, clientId }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthStateCtx);
   if (!context) {
-    throw new Error("useGoogleAuth must be used within a GoogleAuthProvider");
+    throw new Error('useGoogleAuth must be used within a GoogleAuthProvider');
   }
   return {
     ...context,

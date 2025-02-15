@@ -1,4 +1,4 @@
-import { useIntl } from "react-intl";
+import { useIntl } from 'react-intl';
 
 export function useTranslations() {
   const intl = useIntl();

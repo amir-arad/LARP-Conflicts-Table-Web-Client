@@ -1,8 +1,10 @@
-import * as React from "react";
-import { useRtlUtils } from "../../hooks/useRtlUtils";
-import { LockInfo, PresenceState } from "../../lib/collaboration";
-import { cn } from "../../lib/utils";
-import { LockIndicator } from "./lock-indicator";
+import * as React from 'react';
+
+import { LockInfo, PresenceState } from '../../lib/collaboration';
+
+import { LockIndicator } from './lock-indicator';
+import { cn } from '../../lib/utils';
+import { useRtlUtils } from '../../hooks/useRtlUtils';
 
 interface MotivationTableCellProps
   extends React.TdHTMLAttributes<HTMLTableCellElement> {
@@ -10,7 +12,6 @@ interface MotivationTableCellProps
   onUpdate: (newContent: string) => void;
   onFocusChange: (isFocused: boolean) => void;
   cellId: string;
-  sheetId: string;
   lockInfo?: LockInfo;
   presence?: PresenceState;
 }
@@ -20,30 +21,21 @@ export const MotivationTableCell = React.forwardRef<
   MotivationTableCellProps
 >(
   (
-    {
-      cellId,
-      content,
-      onUpdate,
-      onFocusChange,
-      sheetId,
-      lockInfo,
-      presence,
-      ...props
-    },
+    { cellId, content, onUpdate, onFocusChange, lockInfo, presence, ...props },
     ref
   ) => {
     const { getContentClass, getTextDirection } = useRtlUtils();
 
-    const lockOwner = presence?.[lockInfo?.userId ?? ""] ?? null;
+    const lockOwner = presence?.[lockInfo?.userId ?? ''] ?? null;
 
     return (
       <td
         ref={ref}
         id={cellId}
         className={cn(
-          "border p-2 relative group",
+          'border p-2 relative group',
           getContentClass(content),
-          lockInfo && "border-red-400"
+          lockInfo && 'border-red-400'
         )}
         dir={getTextDirection(content)}
         {...props}
@@ -55,9 +47,9 @@ export const MotivationTableCell = React.forwardRef<
           onFocus={() => {
             onFocusChange(true);
           }}
-          onBlur={(e) => {
+          onBlur={e => {
             onFocusChange(false);
-            onUpdate(e.target.textContent || "");
+            onUpdate(e.target.textContent || '');
           }}
           className="min-h-8 focus:outline-none focus:bg-blue-50"
         >
@@ -67,4 +59,4 @@ export const MotivationTableCell = React.forwardRef<
     );
   }
 );
-MotivationTableCell.displayName = "MotivationTableCell";
+MotivationTableCell.displayName = 'MotivationTableCell';

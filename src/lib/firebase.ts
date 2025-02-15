@@ -1,4 +1,11 @@
-import { FirebaseApp, initializeApp } from "firebase/app";
+import {
+  CollaborationState,
+  HeartbeatConfig,
+  HeartbeatError,
+  LockInfo,
+  LocksState,
+  Presence,
+} from './collaboration';
 import {
   Database,
   DatabaseReference,
@@ -14,16 +21,9 @@ import {
   remove,
   serverTimestamp,
   set,
-  update
-} from "firebase/database";
-import {
-  CollaborationState,
-  HeartbeatConfig,
-  HeartbeatError,
-  LockInfo,
-  LocksState,
-  Presence,
-} from "./collaboration";
+  update,
+} from 'firebase/database';
+import { FirebaseApp, initializeApp } from 'firebase/app';
 
 let firebaseApp: FirebaseApp | null = null;
 let database: Database | null = null;
@@ -38,7 +38,7 @@ export const initializeFirebase = (config: Record<string, string>) => {
 
 export const getDatabaseRef = (path: string): DatabaseReference | null => {
   if (!database) {
-    console.error("Firebase not initialized");
+    console.error('Firebase not initialized');
     return null;
   }
   return ref(database, path);
@@ -46,31 +46,31 @@ export const getDatabaseRef = (path: string): DatabaseReference | null => {
 
 export const setupDisconnectCleanup = (
   reference: DatabaseReference,
-  cleanup: any
+  cleanup: unknown
 ) => {
   return onDisconnect(reference).set(cleanup);
 };
 
-export const subscribeToPath = (
+export const subscribeToPath = <T>(
   path: string,
-  callback: (data: any) => void
+  callback: (data: T | null) => void
 ): (() => void) => {
   const reference = getDatabaseRef(path);
   if (!reference) return () => {};
 
-  if (import.meta.env.DEV) console.log("subscribing to path", path);
-  const unsubscribe = onValue(reference, (snapshot) => {
-    if (import.meta.env.DEV) console.log("got snapshot", path, snapshot.val());
+  if (import.meta.env.DEV) console.log('subscribing to path', path);
+  const unsubscribe = onValue(reference, snapshot => {
+    if (import.meta.env.DEV) console.log('got snapshot', path, snapshot.val());
     callback(snapshot.val());
   });
 
   return () => {
-    if (import.meta.env.DEV) console.log("un-subscribing from path", path);
+    if (import.meta.env.DEV) console.log('un-subscribing from path', path);
     unsubscribe();
   };
 };
 
-export const updateData = async (path: string, data: any): Promise<void> => {
+export const updateData = async <T>(path: string, data: T): Promise<void> => {
   const reference = getDatabaseRef(path);
   if (!reference) return;
 
@@ -91,10 +91,10 @@ export const getLockPath = (sheetId: string, cellId: string): string => {
 
 export const connectionManager = {
   monitorConnection: (callback: (connected: boolean) => void): (() => void) => {
-    const connectedRef = getDatabaseRef(".info/connected");
+    const connectedRef = getDatabaseRef('.info/connected');
     if (!connectedRef) return () => {};
 
-    const unsubscribe = onValue(connectedRef, (snap) => {
+    const unsubscribe = onValue(connectedRef, snap => {
       const connected = snap.val() === true;
       callback(connected);
     });
@@ -122,21 +122,21 @@ export const connectionManager = {
   ) => {
     if (!presenceRef) return;
     let retryCount = 0;
-    let retryTimeout: NodeJS.Timeout | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const updatePresence = async () => {
       try {
         await set(presenceRef, {
           ...presenceData,
           lastActive: serverTimestamp(),
-          updateType: "heartbeat",
+          updateType: 'heartbeat',
         });
         retryCount = 0; // Reset retry count on success
       } catch (error) {
         retryCount++;
         const heartbeatError: HeartbeatError = {
-          code: "HEARTBEAT_FAILED",
-          message: "Failed to update presence",
+          code: 'HEARTBEAT_FAILED',
+          message: 'Failed to update presence',
           details: error,
           timestamp: Date.now(),
           retryCount,
@@ -182,7 +182,7 @@ export const connectionManager = {
     if (!database) return;
 
     goOffline(database);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
     goOnline(database);
   },
 };
@@ -223,7 +223,7 @@ export const realtimeDB = {
      */
     getActiveUsers: async (
       sheetId: string
-    ): Promise<CollaborationState["presence"]> => {
+    ): Promise<CollaborationState['presence']> => {
       const presencePath = `sheets/${sheetId}/presence`;
       const presenceRef = getDatabaseRef(presencePath);
       if (!presenceRef) return {};
@@ -237,14 +237,14 @@ export const realtimeDB = {
      */
     updateUserPresence: async (
       presenceRef: DatabaseReference,
-      data: Partial<CollaborationState["presence"][string]>
+      data: Partial<CollaborationState['presence'][string]>
     ): Promise<void> => {
       if (!presenceRef) return;
 
       await update(presenceRef, {
         ...data,
         lastActive: serverTimestamp(),
-        updateType: "state_change",
+        updateType: 'state_change',
       });
     },
 
@@ -253,10 +253,13 @@ export const realtimeDB = {
      */
     subscribeToPresence: (
       sheetId: string,
-      callback: (presence: CollaborationState["presence"]) => void
+      callback: (presence: CollaborationState['presence']) => void
     ): (() => void) => {
       const presencePath = `sheets/${sheetId}/presence`;
-      return subscribeToPath(presencePath, callback);
+      return subscribeToPath<CollaborationState['presence']>(
+        presencePath,
+        data => callback(data || {})
+      );
     },
 
     /**
@@ -271,13 +274,13 @@ export const realtimeDB = {
       if (!presenceRef) return;
 
       const snapshot = await get(
-        query(presenceRef, orderByChild("lastActive"))
+        query(presenceRef, orderByChild('lastActive'))
       );
 
       const now = Date.now();
       const updates: Record<string, null> = {};
 
-      snapshot.forEach((child) => {
+      snapshot.forEach(child => {
         const lastActive = child.val().lastActive;
         if (now - lastActive > maxInactiveTime) {
           updates[child.key!] = null;
@@ -314,7 +317,7 @@ export const realtimeDB = {
         await set(lockRef, lockData);
         return true;
       } catch (error) {
-        console.error("Failed to acquire lock:", error);
+        console.error('Failed to acquire lock:', error);
         return false;
       }
     },
@@ -349,7 +352,9 @@ export const realtimeDB = {
       callback: (locks: LocksState) => void
     ): (() => void) => {
       const locksPath = `sheets/${sheetId}/locks`;
-      return subscribeToPath(locksPath, callback);
+      return subscribeToPath<LocksState>(locksPath, data =>
+        callback(data || {})
+      );
     },
 
     /**

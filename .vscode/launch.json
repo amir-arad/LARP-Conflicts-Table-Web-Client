@@ -10,9 +10,7 @@
       "sourceMaps": true,
       "port": 9223,
       "userDataDir": false,
-      "runtimeArgs": [
-        "--profile-directory=Default"
-      ],
+      "runtimeArgs": ["--profile-directory=Default"],
       "sourceMapPathOverrides": {
         "/@fs/*": "${webRoot}/*",
         "/@vite/*": "${webRoot}/node_modules/vite/*",
@@ -28,9 +26,7 @@
       "sourceMaps": true,
       "port": 9222,
       "userDataDir": false,
-      "runtimeArgs": [
-        "--profile-directory=Profile 1"
-      ],
+      "runtimeArgs": ["--profile-directory=Profile 1"],
       "sourceMapPathOverrides": {
         "/@fs/*": "${webRoot}/*",
         "/@vite/*": "${webRoot}/node_modules/vite/*",
@@ -73,5 +69,5 @@
       "smartStep": true,
       "console": "integratedTerminal"
     }
-  ],
+  ]
 }

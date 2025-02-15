@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @tailwind utilities;
 
@@ -36,8 +36,8 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
-  :root[dir="rtl"] {
-    --font-sans: "Assistant", "Rubik", system-ui, sans-serif;
+  :root[dir='rtl'] {
+    --font-sans: 'Assistant', 'Rubik', system-ui, sans-serif;
   }
 
   .dark {
@@ -71,12 +71,14 @@
   }
 
   body {
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 
-  [dir="rtl"] {
+  [dir='rtl'] {
     .text-start {
       text-align: right;
     }
@@ -90,19 +92,19 @@
     unicode-bidi: plaintext;
   }
 
-  [dir="rtl"] .hebrew-numbers {
+  [dir='rtl'] .hebrew-numbers {
     direction: ltr;
     display: inline-block;
   }
 }
 
 @layer components {
-  .card-header[dir="rtl"],
-  .card-content[dir="rtl"] {
+  .card-header[dir='rtl'],
+  .card-content[dir='rtl'] {
     text-align: right;
   }
 
-  .table-cell[dir="rtl"] {
+  .table-cell[dir='rtl'] {
     text-align: right;
   }
 
@@ -114,33 +116,33 @@
   /* Handle mixed content */
   .mixed-content {
     text-align: start;
-    &[lang="en"] {
+    &[lang='en'] {
       direction: ltr;
       unicode-bidi: embed;
     }
-    &[lang="he"] {
+    &[lang='he'] {
       direction: rtl;
       unicode-bidi: embed;
     }
   }
 
   /* Table RTL specifics */
-  [dir="rtl"] table {
+  [dir='rtl'] table {
     text-align: right;
   }
 
-  [dir="rtl"] .editable-content {
+  [dir='rtl'] .editable-content {
     text-align: right;
     direction: rtl;
   }
 
   /* Handle mixed content in table cells */
-  [dir="rtl"] .mixed-content-cell {
-    &[lang="en"] {
+  [dir='rtl'] .mixed-content-cell {
+    &[lang='en'] {
       direction: ltr;
       text-align: left;
     }
-    &[lang="he"] {
+    &[lang='he'] {
       direction: rtl;
       text-align: right;
     }

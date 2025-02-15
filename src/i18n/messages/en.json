@@ -16,5 +16,8 @@
   "status.disconnected": "Disconnected",
   "action.initializing": "Initializing...",
   "error.connection": "Connection Error",
-  "action.reconnect": "Reconnect"
+  "action.reconnect": "Reconnect",
+  "error.somethingWentWrong": "Something Went Wrong",
+  "error.tryAgainLater": "An error occurred. Please try again later.",
+  "error.tryAgain": "Try Again"
 }

@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   return {
-    base: './',
+    base: "./",
     define: {
       "process.env.GOOGLE_API_KEY": JSON.stringify(env.VITE_GOOGLE_API_KEY),
       "process.env.GOOGLE_CLIENT_ID": JSON.stringify(env.VITE_GOOGLE_CLIENT_ID),

@@ -1,11 +1,11 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { expect, vi } from "vitest";
+import { renderHook, waitFor } from '@testing-library/react';
+import { expect, vi } from 'vitest';
 import {
   CellId,
   ConflictsTable,
   UseConflictsTableProps,
   useConflictsTable,
-} from "./useConflictsTable";
+} from './useConflictsTable';
 
 function mockSheetsApi() {
   return {
@@ -35,13 +35,13 @@ type HookReturn = ReturnType<
 >;
 
 export class ConflictsTableTestDriver {
-  private result: HookReturn["result"];
+  private result: HookReturn['result'];
   private gapi = mockSheetsApi();
   constructor(
     initialProps: UseConflictsTableProps = {
       gapi: this.gapi as unknown as typeof gapi,
-      sheetId: "test-sheet-id",
-      token: "test-token",
+      sheetId: 'test-sheet-id',
+      token: 'test-token',
     }
   ) {
     const { result } = renderHook(() => useConflictsTable(initialProps));
@@ -87,7 +87,7 @@ export class ConflictsTableTestDriver {
         const allMotivations = Object.fromEntries(
           this.result.current.roles
             .flatMap(({ motivations }) => Object.values(motivations))
-            .map((motivation) => [motivation.cellRef, motivation.value])
+            .map(motivation => [motivation.cellRef, motivation.value])
         );
         expect(allMotivations).toEqual(expected.motivations);
       }
@@ -95,7 +95,7 @@ export class ConflictsTableTestDriver {
   }
 
   expectApiCall(
-    method: "get" | "update" | "clear",
+    method: 'get' | 'update' | 'clear',
     expectedRange: string,
     expectedValues?: unknown[][]
   ) {
@@ -112,11 +112,11 @@ export class ConflictsTableTestDriver {
   }
 
   getConflicts(): string[] {
-    return this.result.current.conflicts.map((conflict) => conflict.value);
+    return this.result.current.conflicts.map(conflict => conflict.value);
   }
 
   getRoles(): string[] {
-    return this.result.current.roles.map((role) => role.value);
+    return this.result.current.roles.map(role => role.value);
   }
 
   getError(): string | null {
