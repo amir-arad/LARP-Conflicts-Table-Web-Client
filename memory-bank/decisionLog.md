@@ -108,3 +108,96 @@ This document tracks key architectural and implementation decisions made during 
 - I18nProvider for message loading
 - useTranslations hook for component access
 - RTL utilities for right-to-left support
+
+## February 24, 2025 - Integration Testing Strategy
+
+**Context:** Need to implement fast, reliable integration tests for the application to ensure it works correctly as a whole.
+
+**Decisions:**
+
+### 1. Vitest with JSDOM for Integration Tests
+
+**Context:** Need to choose a testing approach that balances speed and realism for integration tests.
+
+**Decision:** Use Vitest with JSDOM as the primary testing approach for integration tests.
+
+**Rationale:**
+
+- Integrates well with the existing Vite setup
+- Provides fast test execution compared to browser-based alternatives
+- Has a familiar API similar to Jest
+- Supports TypeScript natively
+- Allows for parallel test execution
+- Provides good developer experience with watch mode
+
+**Implementation:**
+
+- Configure Vitest to use JSDOM environment
+- Set up test helpers for rendering components with all required providers
+- Create a consistent test structure using Arrange-Act-Assert pattern
+- Use React Testing Library for component interactions
+
+### 2. Mock External Dependencies
+
+**Context:** Need to test the application without relying on external services.
+
+**Decision:** Enhance existing mock drivers to better support integration testing.
+
+**Rationale:**
+
+- Makes tests faster and more reliable
+- Avoids hitting real external services during tests
+- Allows for precise control over test scenarios
+- Leverages existing mock infrastructure
+- Enables testing of error conditions and edge cases
+
+**Implementation:**
+
+- Enhance Auth API mock with support for simulating login, errors, and auth process
+- Enhance Firebase API mock with support for presence, locking, and collaboration features
+- Enhance Google Sheets API mock with support for data loading, updating, and error conditions
+- Create helper functions for common testing tasks
+
+### 3. Phased Implementation Approach
+
+**Context:** Need to implement integration tests in a structured way that provides value incrementally.
+
+**Decision:** Implement integration tests in phases, starting with the most critical user flows.
+
+**Rationale:**
+
+- Allows for incremental progress and feedback
+- Focuses on the most critical parts of the application first
+- Builds confidence in the testing approach
+- Enables early detection of issues with the testing strategy
+- Provides a clear roadmap for implementation
+
+**Implementation:**
+
+- Phase 1: Setup and Infrastructure (1-2 days)
+- Phase 2: Auth Flow Tests (1-2 days)
+- Phase 3: Table Operations Tests (2-3 days)
+- Phase 4: Collaboration Tests (2-3 days)
+- Phase 5: Error Handling and Edge Cases (1-2 days)
+- Phase 6: Test Optimization and CI/CD Integration (1-2 days)
+
+### 4. Test Organization by User Flows
+
+**Context:** Need to organize tests in a way that reflects how users interact with the application.
+
+**Decision:** Organize integration tests by user flows rather than by components or features.
+
+**Rationale:**
+
+- Aligns with how users actually use the application
+- Ensures critical paths are tested end-to-end
+- Makes tests more resilient to implementation changes
+- Provides better documentation of expected behavior
+- Focuses on user value rather than implementation details
+
+**Implementation:**
+
+- Auth Flow: Login, error handling, and presence management
+- Table Operations: Adding, removing, and editing conflicts, roles, and motivations
+- Collaboration: Presence visualization, cell locking, and multi-user interaction
+- Error Handling: Network errors, API errors, and edge cases

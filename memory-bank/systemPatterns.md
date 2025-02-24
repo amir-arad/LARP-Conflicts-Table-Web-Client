@@ -218,3 +218,109 @@ The application provides clear visual feedback for user actions and system state
 - Clear communication of system state
 - Reduced user confusion
 - Accessible design
+
+## Testing Patterns
+
+### 1. Mock Driver Pattern
+
+The application uses mock drivers to simulate external dependencies in tests.
+
+**Implementation:**
+
+- `mockAuthState`: Simulates authentication state
+- `mockFirebaseAPI`: Simulates Firebase database operations
+- `mockGoogleSheetsAPI`: Simulates Google Sheets API
+- Enhanced mock drivers for integration tests
+
+**Benefits:**
+
+- Isolates tests from external dependencies
+- Enables precise control over test scenarios
+- Makes tests faster and more reliable
+- Allows testing of error conditions and edge cases
+
+### 2. Test Wrapper Pattern
+
+A test wrapper provides all required providers and context for component testing.
+
+**Implementation:**
+
+- `createTestWrapper`: Creates a wrapper with all providers
+- Injection of mock implementations
+- State management for test scenarios
+- Helper functions for common operations
+
+**Benefits:**
+
+- Simplifies test setup
+- Ensures consistent test environment
+- Enables realistic component testing
+- Reduces boilerplate in tests
+
+### 3. Arrange-Act-Assert Pattern
+
+Tests are structured with clear setup, action, and verification phases.
+
+**Implementation:**
+
+- Arrange: Set up test environment and data
+- Act: Perform the action being tested
+- Assert: Verify the expected outcome
+
+**Benefits:**
+
+- Clear test structure
+- Improved readability
+- Easier debugging
+- Consistent test approach
+
+### 4. User Flow Testing Pattern
+
+Integration tests are organized by user flows rather than by components or features.
+
+**Implementation:**
+
+- Auth Flow: Login, error handling, and presence management
+- Table Operations: Adding, removing, and editing conflicts, roles, and motivations
+- Collaboration: Presence visualization, cell locking, and multi-user interaction
+
+**Benefits:**
+
+- Aligns with how users actually use the application
+- Ensures critical paths are tested end-to-end
+- Makes tests more resilient to implementation changes
+- Focuses on user value rather than implementation details
+
+### 5. Page Object Pattern
+
+Complex pages or components are encapsulated in page objects for testing.
+
+**Implementation:**
+
+- `ConflictsTablePage`: Encapsulates table interactions
+- Methods for common operations (add conflict, add role, etc.)
+- Accessors for page state and elements
+
+**Benefits:**
+
+- Encapsulates page structure and behavior
+- Reduces duplication in tests
+- Improves test maintainability
+- Provides clear API for tests
+
+### 6. Data Builder Pattern
+
+Test data is created using builder functions for flexibility and reuse.
+
+**Implementation:**
+
+- Functions to build test data with default values
+- Options to customize specific aspects of the data
+- Consistent data structure across tests
+
+**Benefits:**
+
+- Reduces duplication in test data setup
+- Makes tests more readable
+- Ensures consistent test data
+- Simplifies test maintenance
