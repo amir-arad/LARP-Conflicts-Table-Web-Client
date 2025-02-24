@@ -18,7 +18,7 @@ interface ConflictsTableToolProps {
 }
 
 const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
-  const { access_token, isReady } = useAuth();
+  const { isReady } = useAuth();
   const { registerPresence, unregisterPresence, locks, presence } =
     usePresence(sheetId);
   const [activeCell, setActiveCell] = useState<string | null>(null);
@@ -45,17 +45,13 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     updateMotivation,
     updateConflictName,
     updateRoleName,
-  } = useConflictsTable({
-    sheetId: sheetId,
-    token: access_token || '',
-    gapi: window?.gapi,
-  });
+  } = useConflictsTable();
 
   useEffect(() => {
-    if (access_token && sheetId) {
+    if (sheetId) {
       loadData();
     }
-  }, [access_token, sheetId, loadData]);
+  }, [sheetId, loadData]);
 
   useEffect(() => {
     if (isReady) {
@@ -74,7 +70,7 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     [addRole, t]
   );
 
-  if (!access_token || isLoading) {
+  if (isLoading) {
     return <div>{t('app.loading')}</div>;
   }
 

@@ -65,5 +65,6 @@
   },
   "[github-actions-workflow]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
 }

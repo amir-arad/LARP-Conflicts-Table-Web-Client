@@ -1,18 +1,33 @@
+/* eslint-disable react-refresh/only-export-components */
 import './index.css';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { HashRouter, Link, Route, Routes } from 'react-router-dom';
-import { clientId, sheetId } from './config';
+import { clientId, firebaseConfig, sheetId } from './config';
 
 import ConflictsTableTool from './components/conflicts-table-tool';
 import { ConnectionStatusIndicator } from './components/ui/connection-status-indicator';
 import ErrorBoundary from './components/error-boundary';
+import { FirebaseProvider } from './contexts/FirebaseContext';
+import { GoogleSheetsProvider } from './contexts/GoogleSheetsContext';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { useAccessToken } from './contexts/AuthContext';
 import { useTranslations } from './hooks/useTranslations';
+
+function AppWithSheets() {
+  const token = useAccessToken();
+  if (!token) return null;
+
+  return (
+    <GoogleSheetsProvider sheetId={sheetId} token={token}>
+      <App />
+    </GoogleSheetsProvider>
+  );
+}
 
 const App = () => {
   const { t } = useTranslations();
@@ -70,13 +85,15 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary component="Root">
-      <AuthProvider clientId={clientId}>
-        <LanguageProvider>
-          <I18nProvider>
-            <App />
-          </I18nProvider>
-        </LanguageProvider>
-      </AuthProvider>
+      <FirebaseProvider config={firebaseConfig}>
+        <AuthProvider clientId={clientId}>
+          <LanguageProvider>
+            <I18nProvider>
+              <AppWithSheets />
+            </I18nProvider>
+          </LanguageProvider>
+        </AuthProvider>
+      </FirebaseProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

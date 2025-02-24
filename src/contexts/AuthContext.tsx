@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   GoogleAuthProvider,
   User,
@@ -13,10 +14,9 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { connectionManager, initializeFirebase } from '../lib/firebase';
 
-import { firebaseConfig } from '../config';
 import { gapi } from 'gapi-script';
+import { useFirebase } from './FirebaseContext';
 
 export enum ClientLoadStatus {
   Loading,
@@ -28,7 +28,7 @@ export enum ClientLoadStatus {
   Ready,
   Error,
 }
-interface AuthState {
+export interface AuthState {
   clientStatus: ClientLoadStatus;
   errorStatus: ClientLoadStatus;
   access_token: string | null;
@@ -69,6 +69,7 @@ const discoveryDocs = [
 ];
 
 function AuthContext({ children }: { children: ReactNode }) {
+  const firebase = useFirebase();
   const login = useGoogleLogin({
     onSuccess: ({ access_token, expires_in }) => {
       try {
@@ -192,11 +193,6 @@ function AuthContext({ children }: { children: ReactNode }) {
           break;
         case ClientLoadStatus.Initializing_firebase:
           if (auth.access_token) {
-            const { database } = initializeFirebase(firebaseConfig);
-            if (!database) {
-              setError(new Error('No firebase database'));
-              return;
-            }
             const firebaseAuth = getAuth();
             const firebaseCredential = GoogleAuthProvider.credential(
               null,
@@ -215,14 +211,20 @@ function AuthContext({ children }: { children: ReactNode }) {
             setError(new Error('No access token'));
           }
           break;
-        case ClientLoadStatus.Connecting:
-          return connectionManager.monitorConnection(connected => {
+        case ClientLoadStatus.Connecting: {
+          const connectedRef = firebase.getDatabaseRef('.info/connected');
+          return firebase.onValue(connectedRef, snapshot => {
+            const connected = snapshot.val() === true;
             if (connected) {
               setClientStatus(
                 ClientLoadStatus.Ready,
                 ClientLoadStatus.Connecting
               );
-              connectionManager.reconnect().catch(setError);
+              // Reconnect by toggling online state
+              firebase.goOffline();
+              setTimeout(() => {
+                firebase.goOnline();
+              }, 1000);
             } else if (auth.clientStatus === ClientLoadStatus.Ready) {
               setClientStatus(
                 ClientLoadStatus.Connecting,
@@ -230,6 +232,7 @@ function AuthContext({ children }: { children: ReactNode }) {
               );
             }
           });
+        }
       }
     } catch (error) {
       setError(error);
@@ -241,6 +244,7 @@ function AuthContext({ children }: { children: ReactNode }) {
     setError,
     setClientStatus,
     setFirebaseUser,
+    firebase,
   ]);
 
   return <AuthStateCtx.Provider value={auth}>{children}</AuthStateCtx.Provider>;
@@ -253,6 +257,7 @@ export function AuthProvider({ children, clientId }: AuthProviderProps) {
     </GoogleOAuthProvider>
   );
 }
+AuthProvider.Inject = AuthStateCtx.Provider;
 
 export function useAuth() {
   const context = useContext(AuthStateCtx);

@@ -1,28 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { expect, vi } from 'vitest';
-import {
-  CellId,
-  ConflictsTable,
-  UseConflictsTableProps,
-  useConflictsTable,
-} from './useConflictsTable';
-
-function mockSheetsApi() {
-  return {
-    client: {
-      sheets: {
-        spreadsheets: {
-          values: {
-            get: vi.fn(),
-            update: vi.fn(),
-            clear: vi.fn(),
-          },
-        },
-      },
-      load: vi.fn(),
-    },
-  };
-}
+import { createTestWrapper } from '../test/test-wrapper';
+import { CellId, ConflictsTable, useConflictsTable } from './useConflictsTable';
 
 export interface ExpectedTableData {
   conflicts?: string[];
@@ -30,22 +9,18 @@ export interface ExpectedTableData {
   motivations?: Record<string, string>;
 }
 
-type HookReturn = ReturnType<
-  typeof renderHook<ConflictsTable, UseConflictsTableProps>
->;
+type HookReturn = ReturnType<typeof renderHook<ConflictsTable, never>>;
 
 export class ConflictsTableTestDriver {
   private result: HookReturn['result'];
-  private gapi = mockSheetsApi();
-  constructor(
-    initialProps: UseConflictsTableProps = {
-      gapi: this.gapi as unknown as typeof gapi,
-      sheetId: 'test-sheet-id',
-      token: 'test-token',
-    }
-  ) {
-    const { result } = renderHook(() => useConflictsTable(initialProps));
+  private testWrapper = createTestWrapper();
+
+  constructor() {
+    const { result } = renderHook(() => useConflictsTable(), {
+      wrapper: this.testWrapper.Wrapper,
+    });
     this.result = result;
+    vi.clearAllMocks();
   }
 
   resetApiCalls() {
@@ -53,22 +28,20 @@ export class ConflictsTableTestDriver {
   }
 
   async setTestData(
-    values: string[][] | Promise<string[][]>,
+    valuesArg: string[][] | Promise<string[][]>,
     loadAndWait = true
   ) {
-    const getResult = Promise.withResolvers();
-    this.gapi.client.sheets.spreadsheets.values.get.mockResolvedValueOnce(
-      getResult.promise
-    );
+    const loadResult = Promise.withResolvers<string[][]>();
+    this.testWrapper.mockGoogleSheets.setTestData(loadResult.promise);
+
     if (loadAndWait) {
       this.loadData();
       await waitFor(() => expect(this.isLoading()).toBeTruthy());
     }
     try {
-      const resolvedValues = await values;
-      getResult.resolve({ result: { values: resolvedValues } });
+      loadResult.resolve(await valuesArg);
     } catch (e) {
-      getResult.reject(e);
+      loadResult.reject(e);
     }
     if (loadAndWait) {
       await waitFor(() => expect(this.isLoading()).toBeFalsy());
@@ -94,19 +67,21 @@ export class ConflictsTableTestDriver {
     });
   }
 
-  expectApiCall(
-    method: 'get' | 'update' | 'clear',
+  expectGoogleSheetsApiCall(
+    method: 'load' | 'update' | 'clear',
     expectedRange: string,
     expectedValues?: unknown[][]
   ) {
     return waitFor(() => {
-      const mockApi = this.gapi.client.sheets.spreadsheets.values;
-      expect(mockApi[method]).toHaveBeenCalledTimes(1);
-      const mockCall = mockApi[method].mock.calls[0][0];
-
-      expect(mockCall.range).toBe(expectedRange);
+      const mockFn = this.testWrapper.mockGoogleSheets.api[method];
+      const calls = mockFn.mock.calls.filter(call => {
+        // Filter calls by range to handle multiple operations
+        const range = call[0];
+        return method === 'load' || range === expectedRange;
+      });
+      expect(calls.length).toBe(1);
       if (expectedValues) {
-        expect(mockCall.resource.values).toEqual(expectedValues);
+        expect(calls[0][1]).toEqual(expectedValues);
       }
     });
   }
