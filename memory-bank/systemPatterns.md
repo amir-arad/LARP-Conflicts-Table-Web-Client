@@ -1,153 +1,220 @@
 # System Patterns
 
-## Test Patterns
+This document captures the key architectural and design patterns identified in the LARP Conflicts Table Web Client.
 
-### Driver Pattern
+## Architectural Patterns
 
-The ConflictsTableTestDriver demonstrates several key patterns for test drivers:
+### 1. Provider Pattern
 
-1. Dependency Injection
+The application extensively uses the Provider Pattern through React Context to make services and state available throughout the component tree.
 
-   - Uses context providers for dependency injection
-   - Accesses dependencies through interfaces, not implementation details
-   - Makes testing more maintainable and less brittle
+**Implementation:**
 
-2. Mock Management
+- `AuthProvider`: Authentication state and operations
+- `FirebaseProvider`: Firebase database access
+- `GoogleSheetsProvider`: Google Sheets API access
+- `LanguageProvider`: Language selection and translation
+- `I18nProvider`: Internationalization messages
 
-   - Mocks are defined at interface boundaries
-   - Uses strongly typed mocks that match the interface
-   - Centralizes mock setup and verification
+**Benefits:**
 
-3. Test Driver Structure
+- Avoids prop drilling
+- Centralizes state management
+- Enables dependency injection for testing
+- Provides clear service boundaries
 
-   - Encapsulates test setup and assertions
-   - Provides a clean API for test cases
-   - Handles async operations consistently
-   - Maintains type safety throughout
+### 2. Hooks Pattern
 
-4. State Management
+Custom hooks encapsulate complex logic and make it reusable across components.
 
-   - Tracks component state through hook results
-   - Provides methods to modify state
-   - Includes utilities for waiting on state changes
+**Implementation:**
 
-5. API Verification
-   - Verifies API calls through mock expectations
-   - Checks both method calls and arguments
-   - Supports different API operations (load, update, clear)
+- `useConflictsTable`: Table data management
+- `usePresence`: User presence tracking
+- `useFlags`: Feature flags and filters
+- `useTranslations`: Internationalization access
+- `useRtlUtils`: Right-to-left language support
 
-### Best Practices
+**Benefits:**
 
-1. Interface-Driven Design
+- Separates concerns between UI and business logic
+- Enables composition of behavior
+- Improves testability
+- Provides clear API for components
 
-   ```typescript
-   interface GoogleSheetsAPI {
-     load: () => Promise<Response<ValueRange>>;
-     update: (range: string, values: any[][]) => Promise<Response>;
-     clear: (range: string) => Promise<Response>;
-     isLoading: boolean;
-     error: string | null;
-   }
-   ```
+### 3. Optimistic UI Pattern
 
-   - Define clear interfaces for external dependencies
-   - Use TypeScript for better type safety
-   - Document interface contracts
+The application updates the UI immediately before confirming changes with the backend, providing a responsive user experience.
 
-2. Mock Implementation
+**Implementation:**
 
-   ```typescript
-   const mockGoogleSheets = {
-     load: vi.fn(),
-     update: vi.fn(),
-     clear: vi.fn(),
-     error: null,
-     isLoading: false,
-   } satisfies GoogleSheetsAPI;
-   ```
+- Immediate UI updates when editing cells
+- Lock acquisition before confirmation
+- Local state updates before API calls
 
-   - Mocks satisfy interface contracts
-   - Use type assertions for verification
-   - Keep mocks simple and focused
+**Benefits:**
 
-3. Context Provider Pattern
+- Improved perceived performance
+- Better user experience
+- Reduced waiting time
+- Graceful handling of network delays
 
-   ```typescript
-   <GoogleSheetsProvider.Inject value={mockGoogleSheets}>
-     {children}
-   </GoogleSheetsProvider.Inject>
-   ```
+### 4. Event-Driven Architecture
 
-   - Use context for dependency injection
-   - Provide test-specific implementations
-   - Maintain component hierarchy
+Firebase Realtime Database enables an event-driven architecture where changes trigger updates across clients.
 
-4. Test Driver Methods
+**Implementation:**
 
-   ```typescript
-   async setTestData(values: string[][] | Promise<string[][]>) {
-     mockGoogleSheets.load.mockResolvedValueOnce({
-       result: { values: await Promise.resolve(values) }
-     });
-   }
-   ```
+- Subscription to presence changes
+- Subscription to lock state changes
+- Real-time updates based on database events
 
-   - Handle async operations properly
-   - Provide clear method signatures
-   - Include proper error handling
+**Benefits:**
 
-5. State Verification
-   ```typescript
-   waitForState(expected: ExpectedTableData) {
-     return waitFor(() => {
-       // Verify expected state
-     });
-   }
-   ```
-   - Use async utilities for state changes
-   - Provide clear error messages
-   - Support partial state verification
+- Decoupled components
+- Real-time responsiveness
+- Scalable communication model
+- Natural fit for collaboration features
 
-### Anti-patterns to Avoid
+## Design Patterns
 
-1. Direct API Mocking
+### 1. Adapter Pattern
 
-   - ❌ Don't mock APIs directly
-   - ✅ Mock through interfaces
-   - ✅ Use dependency injection
+The application uses adapters to normalize external APIs and provide a consistent interface.
 
-2. Implementation Details
+**Implementation:**
 
-   - ❌ Don't couple tests to implementation
-   - ✅ Test through public interfaces
-   - ✅ Focus on behavior, not details
+- `GoogleSheetsContext`: Adapts Google Sheets API
+- `FirebaseContext`: Adapts Firebase RTDB API
+- Test drivers and mocks
 
-3. Global State
+**Benefits:**
 
-   - ❌ Don't rely on global state
-   - ✅ Use proper dependency injection
-   - ✅ Maintain test isolation
+- Isolates external dependencies
+- Simplifies testing with mock implementations
+- Provides consistent interface for components
+- Reduces impact of API changes
 
-4. Complex Setup
-   - ❌ Don't create complex test scenarios
-   - ✅ Keep tests focused and simple
-   - ✅ Use test drivers to manage complexity
+### 2. Composite Pattern
 
-### Testing Strategy
+The table structure uses a composite pattern to represent the hierarchy of roles, conflicts, and motivations.
 
-1. Unit Tests
+**Implementation:**
 
-   - Test components in isolation
-   - Mock external dependencies
-   - Focus on specific behaviors
+- `CellNode` as the base interface
+- `RoleData`, `ConflictData`, and `MotivationData` as specialized types
+- Nested structure with parent-child relationships
 
-2. Integration Tests
+**Benefits:**
 
-   - Test component interactions
-   - Use real implementations where possible
-   - Verify end-to-end flows
+- Unified treatment of different cell types
+- Natural representation of the table structure
+- Simplified traversal and manipulation
+- Clear relationships between entities
 
-3. Test Organization
-   - Group related tests
-   - Use clear descriptions
-   - Follow arrange-act-assert pattern
+### 3. Observer Pattern
+
+The application uses the observer pattern for real-time updates and state synchronization.
+
+**Implementation:**
+
+- Firebase `onValue` subscriptions
+- React state updates based on observed changes
+- Presence and lock state observations
+
+**Benefits:**
+
+- Real-time updates across clients
+- Decoupled state management
+- Reactive UI updates
+- Simplified state synchronization
+
+### 4. Strategy Pattern
+
+Different strategies are used for different types of cells and operations.
+
+**Implementation:**
+
+- Different cell rendering strategies based on type
+- Different update strategies for roles, conflicts, and motivations
+- Different lock handling strategies based on cell state
+
+**Benefits:**
+
+- Encapsulates variation in behavior
+- Simplifies conditional logic
+- Enables extension without modification
+- Improves code organization
+
+## UI Patterns
+
+### 1. Compound Components
+
+The table uses compound components to create a cohesive UI while separating concerns.
+
+**Implementation:**
+
+- `ConflictsTableTool` as the container
+- `EditableTableCell` for general cells
+- `MotivationTableCell` for motivation cells
+- `LockIndicator` for lock visualization
+
+**Benefits:**
+
+- Clear separation of concerns
+- Reusable components
+- Consistent styling and behavior
+- Simplified parent component
+
+### 2. Controlled Components
+
+Form elements are implemented as controlled components with React state.
+
+**Implementation:**
+
+- Cell editing with controlled input
+- Form validation and submission
+- State management for edits
+
+**Benefits:**
+
+- Predictable behavior
+- Centralized state management
+- Simplified validation
+- Controlled updates
+
+### 3. Responsive Design
+
+The UI adapts to different screen sizes and orientations.
+
+**Implementation:**
+
+- Tailwind CSS responsive classes
+- Flexible layouts
+- Overflow handling for tables
+- Mobile-friendly controls
+
+**Benefits:**
+
+- Works across devices
+- Consistent user experience
+- Accessible on various screen sizes
+- Future-proof design
+
+### 4. Visual Feedback
+
+The application provides clear visual feedback for user actions and system state.
+
+**Implementation:**
+
+- Lock indicators
+- Active user avatars
+- Connection status indicator
+- Loading and error states
+
+**Benefits:**
+
+- Improved user experience
+- Clear communication of system state
+- Reduced user confusion
+- Accessible design

@@ -1,74 +1,110 @@
-# TDD Decision Log
+# Decision Log
 
-## 2024-02-22: Refactoring ConflictsTableTestDriver for Better DI
+This document tracks key architectural and implementation decisions made during the development of the LARP Conflicts Table Web Client.
 
-### Context
+## February 24, 2025 - Initial Architecture Review
 
-- Moving from direct gapi mocking to proper dependency injection through GoogleSheetsContext
-- Test 'should load initial data and correctly parse conflicts and roles' is failing
-- Need to align test driver with interface-driven design principles
+**Context:** Comprehensive review of the existing architecture and implementation to understand the system design and collaboration features.
 
-### Design Decisions
+**Decisions Identified:**
 
-#### RED Phase
+### 1. Decentralized Architecture with Google Sheets + Firebase
 
-1. Current Implementation Issues:
+**Context:** Need for persistent data storage with real-time collaboration capabilities.
 
-   - Direct gapi mocking violates dependency injection principles
-   - Test driver tightly coupled to implementation details
-   - Brittle test setup that may affect multiple tests
+**Decision:** Use Google Sheets as the source of truth for data persistence and Firebase Realtime Database for real-time collaboration features.
 
-2. Required Changes:
+**Rationale:**
 
-   - Remove direct gapi mocking from ConflictsTableTestDriver
-   - Use mockGoogleSheets through GoogleSheetsContext.Provider
-   - Update test methods to work with GoogleSheetsAPI interface:
-     ```typescript
-     interface GoogleSheetsAPI {
-       load: () => Promise<Response<ValueRange>>;
-       update: (range: string, values: any[][]) => Promise<Response>;
-       clear: (range: string) => Promise<Response>;
-       isLoading: boolean;
-       error: string | null;
-     }
-     ```
+- Google Sheets provides familiar interface and built-in sharing/permissions
+- Firebase RTDB offers real-time synchronization with minimal setup
+- Decentralized approach avoids need for dedicated backend server
+- Combination leverages strengths of both platforms
 
-3. Implementation Plan:
-   - Update setTestData() to use mockGoogleSheets.load
-   - Update expectGoogleSheetsApiCall() to verify mockGoogleSheets method calls
-   - Remove gapi-specific mocking code
-   - Ensure proper typing with GoogleSheetsAPI interface
+**Implementation:**
 
-### Benefits
+- GoogleSheetsContext for Sheets API interactions
+- FirebaseContext for RTDB operations
+- Clear separation of concerns between data persistence and real-time features
 
-1. Better Separation of Concerns:
+### 2. Optimistic UI Locking for Concurrency
 
-   - Tests depend on interfaces, not implementation details
-   - Easier to maintain and update tests
-   - More reliable test suite
+**Context:** Need to prevent conflicts when multiple users edit the same content simultaneously.
 
-2. Improved Test Design:
-   - Clear contract through GoogleSheetsAPI interface
-   - Consistent mocking strategy across tests
-   - Better alignment with dependency injection principles
+**Decision:** Implement optimistic UI locking with visual indicators rather than pessimistic database locking.
 
-### Next Steps
+**Rationale:**
 
-1. Switch to appropriate mode for implementation
-2. Update ConflictsTableTestDriver implementation
-3. Verify test passes with new implementation
-4. Document patterns for future test implementations
+- Simpler implementation than conflict resolution
+- Better user experience with clear visual feedback
+- Reduced backend complexity
+- Social protocol (showing who is editing what) reduces conflict likelihood
+- TTL-based expiration prevents permanent locks
 
-### Testing Strategy
+**Implementation:**
 
-1. Focus on interface compliance
-2. Verify each method independently
-3. Ensure proper error handling
-4. Maintain existing test coverage
+- Lock state visualization in UI
+- Firebase RTDB for lock tracking
+- 30-second TTL for automatic lock expiration
+- Clear user feedback on locked state
 
-### Patterns to Follow
+### 3. React Context for State Management
 
-1. Always use dependency injection
-2. Mock at interface boundaries
-3. Keep tests focused on behavior, not implementation
-4. Use clear, consistent naming conventions
+**Context:** Need for state management across components with different concerns.
+
+**Decision:** Use React Context API for state management instead of Redux or other state management libraries.
+
+**Rationale:**
+
+- Appropriate complexity level for the application
+- Natural fit for provider pattern used throughout the app
+- Easier testing with context injection
+- Reduced dependencies and bundle size
+- Clear separation of concerns with multiple contexts
+
+**Implementation:**
+
+- AuthContext for authentication state
+- FirebaseContext for Firebase operations
+- GoogleSheetsContext for Sheets API
+- LanguageContext for internationalization
+
+### 4. Custom Hooks for Feature Encapsulation
+
+**Context:** Need to encapsulate complex logic and make it reusable across components.
+
+**Decision:** Implement custom hooks for specific features like table management, presence, and flags.
+
+**Rationale:**
+
+- Encapsulates complex logic in reusable units
+- Separates concerns between UI and business logic
+- Improves testability with mock implementations
+- Provides clear API for components to consume
+
+**Implementation:**
+
+- useConflictsTable for table data management
+- usePresence for user presence tracking
+- useFlags for feature flags and filters
+- useTranslations for internationalization
+
+### 5. Internationalization Support
+
+**Context:** Need to support multiple languages for the application.
+
+**Decision:** Implement custom internationalization solution with context provider.
+
+**Rationale:**
+
+- Specific needs for LARP terminology translation
+- Support for right-to-left languages (Hebrew)
+- Lightweight implementation for the application's needs
+- Easy integration with the existing context system
+
+**Implementation:**
+
+- LanguageContext for language selection
+- I18nProvider for message loading
+- useTranslations hook for component access
+- RTL utilities for right-to-left support
