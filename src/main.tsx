@@ -20,8 +20,8 @@ import { useTranslations } from './hooks/useTranslations';
 
 function AppWithSheets() {
   const token = useAccessToken();
-  if (!token) return null;
 
+  if (!token) return <App />;
   return (
     <GoogleSheetsProvider sheetId={sheetId} token={token}>
       <App />
