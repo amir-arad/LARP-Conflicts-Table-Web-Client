@@ -324,3 +324,46 @@ Test data is created using builder functions for flexibility and reuse.
 - Makes tests more readable
 - Ensures consistent test data
 - Simplifies test maintenance
+
+### 7. Storybook Integration Test Fixtures Pattern
+
+Using Storybook stories as fixtures for integration tests, combining visual documentation with automated testing.
+
+**Implementation:**
+
+- Shared fixtures library for auth, sheet data, and presence state
+- Storybook decorators that provide the same context as the test wrapper
+- Stories that represent integration test scenarios
+- Vitest adapter to use Storybook stories as test fixtures
+- Storybook test runner for automated testing of stories
+
+**Benefits:**
+
+- Visual development and debugging of test fixtures
+- Reusability between tests and documentation
+- Consistent test data across different tests
+- Better developer experience and collaboration
+- Living documentation of test scenarios
+- Easier maintenance of test fixtures
+- Improved test coverage and quality
+
+### 8. Stateful Mock Pattern
+
+Creating stateful mocks that maintain in-memory state across multiple operations to simulate complex external dependencies.
+
+**Implementation:**
+
+- `StatefulSheetsAPI`: Stateful mock for Google Sheets API
+- In-memory storage using data structures that match the external service
+- Translation layer between API notation and internal representation
+- Support for complex operations like range updates and error simulation
+- Helper methods for test setup and verification
+
+**Benefits:**
+
+- Enables testing of complex user flows that involve multiple operations
+- Provides higher fidelity simulation of external services
+- Maintains state consistency across test steps
+- Reduces test brittleness and setup complexity
+- Allows testing of edge cases and error conditions
+- Complements the Storybook integration test fixtures approach

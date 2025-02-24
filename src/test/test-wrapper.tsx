@@ -23,8 +23,8 @@ export type GoogleSheetsAPIResult<T extends keyof GoogleSheetsAPI> =
 /**
  * Create a test wrapper with all required providers and mock drivers
  */
-export function createTestWrapper() {
-  const mockGoogleSheets = mockGoogleSheetsAPI();
+export function createTestWrapper(stateless = false) {
+  const mockGoogleSheets = mockGoogleSheetsAPI(stateless);
   const mockAuth = mockAuthState();
   const mockFirebase = mockFirebaseAPI();
 

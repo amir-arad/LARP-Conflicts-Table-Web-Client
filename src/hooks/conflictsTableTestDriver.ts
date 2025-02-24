@@ -13,7 +13,7 @@ type HookReturn = ReturnType<typeof renderHook<ConflictsTable, never>>;
 
 export class ConflictsTableTestDriver {
   private result: HookReturn['result'];
-  private testWrapper = createTestWrapper();
+  private testWrapper = createTestWrapper(true);
 
   constructor() {
     const { result } = renderHook(() => useConflictsTable(), {

@@ -201,3 +201,114 @@ This document tracks key architectural and implementation decisions made during 
 - Table Operations: Adding, removing, and editing conflicts, roles, and motivations
 - Collaboration: Presence visualization, cell locking, and multi-user interaction
 - Error Handling: Network errors, API errors, and edge cases
+
+## February 24, 2025 - Integration Test Implementation
+
+**Context:** Need to implement the first flow test for the application.
+
+**Decision:** Route the auth flow test implementation to the TDD Integration Maestro mode.
+
+**Rationale:**
+
+- Auth flow is the first critical path to test as identified in the integration testing plan
+- TDD Integration Maestro is specialized in implementing integration tests
+- Task Router's role is to coordinate and route tasks to specialized modes
+- Integration tests require code implementation which is outside Task Router's scope
+
+**Implementation:**
+
+- Task Router identifies the need for the first flow test
+- Task Router analyzes the requirements and existing code
+- Task Router routes the implementation task to TDD Integration Maestro
+- TDD Integration Maestro will implement the auth flow test following TDD principles
+
+## February 24, 2025 - Storybook Integration Test Fixtures
+
+**Context:** Need to improve the development and maintenance of integration test fixtures while providing better visual documentation.
+
+**Decision:** Implement integration test fixtures using Storybook to create a shared library of test scenarios that can be used for both visual documentation and automated testing.
+
+**Rationale:**
+
+- Storybook is already set up in the project (version 8.5.3)
+- Visual development environment makes it easier to understand and debug test fixtures
+- Reusing fixtures between tests and documentation reduces duplication
+- Centralizing test data ensures consistency across different tests
+- Improves developer experience and collaboration between team members
+- Makes test scenarios more accessible to non-developers
+
+**Implementation:**
+
+- Create a shared fixtures library for auth, sheet data, and presence state
+- Develop Storybook decorators that provide the same context as the test wrapper
+- Create stories that represent integration test scenarios
+- Update integration tests to use the same fixtures
+- Set up a Storybook test runner for automated testing of stories
+- Create a Vitest adapter to use Storybook stories as test fixtures
+
+**Phased Approach:**
+
+- Phase 1: Setup (1-2 days) - Create fixtures library and Storybook decorators
+- Phase 2: Story Creation (2-3 days) - Create stories for key user flows
+- Phase 3: Test Integration (2-3 days) - Update tests to use shared fixtures
+- Phase 4: Documentation and Refinement (1-2 days) - Document the approach and refine implementation
+
+## February 24, 2025 - Stateful Google Sheets Mock
+
+**Context:** Need for a more sophisticated mock of the Google Sheets API to support complex integration test scenarios that require state consistency across multiple operations.
+
+**Decision:** Implement a stateful Google Sheets mock with in-memory state while maintaining A1 notation in the public API.
+
+**Rationale:**
+
+- Current simple mock is insufficient for complex user flows that involve multiple operations on the same data
+- Stateful mock would better simulate real Google Sheets behavior
+- Maintaining A1 notation in the public API matches the application's usage and reduces cognitive overhead
+- Internal translation layer can simplify implementation while hiding complexity
+- Complements the Storybook integration test fixtures approach
+
+**Implementation:**
+
+- Create a `StatefulSheetsAPI` class that implements the same interface as the current mock
+- Implement in-memory storage using a 2D array
+- Create an internal translation layer between A1 notation and array coordinates
+- Support core operations: get, update, clear
+- Add support for range operations and error simulation
+- Update test helpers to use the stateful mock
+- Create Storybook stories that demonstrate multi-step operations
+
+**Phased Approach:**
+
+- Phase 1: Core Functionality (1-2 days) - Basic implementation with in-memory storage ✓
+- Phase 2: Enhanced Features (2-3 days) - Range operations, error simulation, validation
+- Phase 3: Integration with Test Framework (1-2 days) - Update helpers, create stories, documentation
+
+## February 24, 2025 - Stateful Google Sheets Mock Implementation
+
+**Context:** Following the decision to implement a stateful Google Sheets mock, we needed to create a robust implementation that maintains state across operations while providing the same interface as the current mock.
+
+**Decision:** Implemented the stateful Google Sheets mock with in-memory state using a 2D array and A1 notation translation utilities.
+
+**Implementation Details:**
+
+- Created `StatefulSheetsAPI` class that implements the same interface as the current mock
+- Implemented `A1Utils` utility class for translating between A1 notation and array coordinates
+- Implemented in-memory storage using a 2D array
+- Added support for core operations: get, update, clear
+- Created comprehensive test suite for the stateful mock
+- Updated the existing mock to use the new stateful implementation
+- Used arrow functions for getters to preserve the `this` context
+
+**Key Technical Decisions:**
+
+1. **A1 Notation in Public API:** Maintained A1 notation in the public API to match the application's usage, while using array coordinates internally for simplicity.
+2. **JSON Deep Clone for Data:** Used `JSON.parse(JSON.stringify())` for deep cloning data to ensure immutability.
+3. **Range Operations:** Implemented range parsing to support operations on cell ranges (e.g., "A1:C3").
+4. **Error Handling:** Added robust error handling for invalid coordinates and other edge cases.
+5. **State Management:** Implemented proper state management for loading and error states.
+
+**Next Steps:**
+
+- Enhance the mock with more advanced features like range operations and error simulation
+- Update test helpers to use the stateful mock
+- Create Storybook stories that demonstrate multi-step operations
