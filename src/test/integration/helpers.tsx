@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReactElement } from 'react';
 import { createTestWrapper } from '../test-wrapper';
-import { testConfig, authStates } from './config';
+import { testConfig } from './config';
 import { FirebaseProvider } from '../../contexts/FirebaseContext';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
 import { LanguageProvider } from '../../contexts/LanguageContext';
@@ -11,6 +11,7 @@ import { expect } from 'vitest';
 import { User } from 'firebase/auth';
 import ConflictsTableTool from '../../components/conflicts-table-tool';
 import { useTranslations } from '../../hooks/useTranslations';
+import { authFixtures } from '../fixtures';
 
 // Create a test app component that mimics the structure of the real app
 // but uses test configuration
@@ -73,12 +74,12 @@ export function renderWithTestWrapper(ui: ReactElement | null) {
     async login(options = { success: true }) {
       if (options.success) {
         testWrapper.mockAuth.setState({
-          ...authStates.authenticated,
-          firebaseUser: authStates.authenticated
+          ...authFixtures.authenticated,
+          firebaseUser: authFixtures.authenticated
             .firebaseUser as unknown as User,
         });
       } else {
-        testWrapper.mockAuth.setState(authStates.error);
+        testWrapper.mockAuth.setState(authFixtures.error);
       }
 
       const loginButton = screen.getByTestId('login-button');

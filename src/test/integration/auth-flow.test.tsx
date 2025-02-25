@@ -1,24 +1,20 @@
 import { screen, waitFor } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 import { renderWithTestWrapper } from './helpers';
-import { authStates } from './config';
+import { authFixtures, sheetFixtures } from '../fixtures';
 import { DatabaseReference } from 'firebase/database';
 
 // Type for mock calls
 type MockCall = [DatabaseReference, Record<string, unknown>];
 
-describe.skip('Authentication Flow', () => {
+describe('Authentication Flow', () => {
   test('happy path: user logs in and establishes presence', async () => {
     // Arrange
     const { testWrapper, login, waitForPresence, checkCoreUIElements } =
       renderWithTestWrapper(null);
 
     // Set up mock data for Google Sheets
-    await testWrapper.mockGoogleSheets.setTestData([
-      ['', 'Role 1', 'Role 2'],
-      ['Conflict 1', 'M1-1', 'M1-2'],
-      ['Conflict 2', 'M2-1', 'M2-2'],
-    ]);
+    await testWrapper.mockGoogleSheets.setTestData(sheetFixtures.basic);
 
     // Act
     await login();
@@ -54,9 +50,9 @@ describe.skip('Authentication Flow', () => {
     const { testWrapper, user } = renderWithTestWrapper(null);
 
     // Set up error state
-    testWrapper.mockAuth.setState(authStates.initial);
+    testWrapper.mockAuth.setState(authFixtures.initial);
     testWrapper.mockAuth.api.login.mockImplementationOnce(() => {
-      testWrapper.mockAuth.setState(authStates.error);
+      testWrapper.mockAuth.setState(authFixtures.error);
     });
 
     // Act
@@ -78,10 +74,7 @@ describe.skip('Authentication Flow', () => {
     const { testWrapper, login, waitForPresence } = renderWithTestWrapper(null);
 
     // Set up mock data for Google Sheets
-    await testWrapper.mockGoogleSheets.setTestData([
-      ['', 'Role 1'],
-      ['Conflict 1', 'M1-1'],
-    ]);
+    await testWrapper.mockGoogleSheets.setTestData(sheetFixtures.basic);
 
     // Mock timers for heartbeat testing
     vi.useFakeTimers();

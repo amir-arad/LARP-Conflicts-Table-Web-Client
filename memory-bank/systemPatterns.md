@@ -367,3 +367,44 @@ Creating stateful mocks that maintain in-memory state across multiple operations
 - Reduces test brittleness and setup complexity
 - Allows testing of edge cases and error conditions
 - Complements the Storybook integration test fixtures approach
+
+### 9. Simplified Component Pattern for Storybook
+
+Creating simplified versions of complex components specifically for Storybook to focus on the essential aspects of the component without the complexity of the full implementation.
+
+**Implementation:**
+
+- `SimplifiedApp`: Simplified version of the main application component
+- `SimplifiedConflictsTableTool`: Simplified version of the conflicts table tool
+- `LoginScreen`: Simplified login screen component
+- `ErrorScreen`: Simplified error screen component
+- Focused on visual representation rather than full functionality
+
+**Benefits:**
+
+- Reduces complexity in Storybook stories
+- Focuses on the essential aspects of the component
+- Makes it easier to understand the component's behavior
+- Improves story maintainability
+- Enables faster story development
+- Provides clearer visual documentation
+
+### 10. State-Based Story Pattern
+
+Creating Storybook stories based on different states of a component or application, using fixtures to simulate these states.
+
+**Implementation:**
+
+- Auth Flow Stories: Initial, Authenticating, Authenticated, Error states
+- Using auth fixtures to simulate different authentication states
+- Story decorators that provide the necessary context for each state
+- Simplified components that respond to the state
+
+**Benefits:**
+
+- Clearly demonstrates different component states
+- Makes it easy to understand state transitions
+- Provides visual documentation of different states
+- Enables testing of state-specific behavior
+- Improves test coverage by ensuring all states are tested
+- Serves as both documentation and test fixtures
