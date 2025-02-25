@@ -1,48 +1,73 @@
-## Integration Testing Patterns for Complex UI Interactions
+## Extended Testing Methodology for Role Management
 
-### Motivation Editing Test Approach
+### Core Testing Patterns
 
-#### Key Testing Patterns
+1. **Resilient Async Handling**
 
-1. **Resilient Event Simulation**
-
-   - Use of `userEvent` for realistic user interactions
-   - Simulate complex event sequences (focus, input, blur)
-   - Handle contenteditable elements with precise event dispatching
+   - Use `safeAct` for reliable async operations
+   - Implement comprehensive error catching
+   - Ensure consistent test behavior across different environments
 
 2. **Mock-Driven Testing**
 
-   - Comprehensive mock setup for external APIs
-   - Simulate error and success scenarios
-   - Verify interaction flows through mock call inspections
+   - Create sophisticated mock drivers
+   - Simulate complex scenarios
+   - Validate system behavior under various conditions
 
-3. **Extended Test Coverage**
-   - Multiple test groups covering different interaction scenarios
-   - Comprehensive error handling tests
-   - Collaborative editing simulation
+3. **Event Sequence Simulation**
+   - Accurately reproduce user interactions
+   - Handle complex event chains
+   - Verify proper state transitions
 
-#### Implementation Techniques
+### Key Implementation Strategies
 
-- Use of `safeAct` for async test operations
-- Detailed mock configuration
-- Explicit error and success path testing
-- Fallback mechanism for DOM element creation
+#### Async Operation Management
 
-### Recommended Patterns for Future Tests
+```typescript
+async function safeAct(callback: () => Promise<void>) {
+  try {
+    await callback();
+    await Promise.resolve(); // Ensure microtask queue is processed
+  } catch (error) {
+    // Centralized error handling
+    console.error('Test action failed', error);
+    throw error;
+  }
+}
+```
 
-- Use similar extended testing approach for other complex UI interactions
-- Implement comprehensive mock drivers
-- Create resilient test helpers that can handle various interaction scenarios
-- Focus on simulating real-world user interactions
+#### Mock Configuration Pattern
 
-### Testing Anti-Patterns Avoided
+```typescript
+const createResilientMock = () => {
+  const mock = vi
+    .fn()
+    .mockRejectedValueOnce(new Error('Initial error'))
+    .mockResolvedValueOnce(undefined);
+  return mock;
+};
+```
 
-- Avoid overly simplistic event simulation
-- Prevent brittle tests that depend on exact implementation details
-- Minimize hardcoded expectations
+### Error Handling Principles
 
-### Continuous Improvement Suggestions
+- Implement comprehensive error scenarios
+- Validate recovery mechanisms
+- Ensure system stability under failure conditions
 
-- Regularly review and update test patterns
-- Expand mock driver capabilities
-- Develop more sophisticated event simulation techniques
+### Collaborative Testing Approach
+
+- Simulate multiple user sessions
+- Verify concurrent operation handling
+- Test race condition resilience
+
+### Performance Considerations
+
+- Minimize test execution time
+- Use efficient mocking strategies
+- Optimize async operation handling
+
+### Continuous Improvement
+
+- Regularly review and refactor test patterns
+- Expand coverage incrementally
+- Maintain test infrastructure flexibility
