@@ -89,7 +89,7 @@ const StoryWrapper = ({
 // Component to display the current step in the story
 const StepIndicator = ({ step }: { step: string }) => {
   return (
-    <div className="fixed top-0 left-0 right-0 bg-blue-500 text-white p-2 text-center z-50">
+    <div className="fixed top-0 right-0 left-0 z-50 bg-blue-500 p-2 text-center text-white">
       Current Step: {step}
     </div>
   );

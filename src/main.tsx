@@ -37,7 +37,7 @@ const App = () => {
     return (
       <button
         onClick={login}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="flex items-center gap-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
       >
         {t('action.login')}
       </button>
@@ -53,12 +53,12 @@ const App = () => {
       <HashRouter>
         <div className="min-h-screen">
           <nav className="bg-indigo-600">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="flex items-center justify-between h-16">
+            <div className="mx-auto max-w-7xl px-4">
+              <div className="flex h-16 items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Link
                     to="/"
-                    className="text-white hover:bg-indigo-500 px-3 py-2 rounded-md"
+                    className="rounded-md px-3 py-2 text-white hover:bg-indigo-500"
                   >
                     Home
                   </Link>

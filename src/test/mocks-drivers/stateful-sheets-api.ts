@@ -173,32 +173,6 @@ export class StatefulSheetsAPI {
   }
 
   /**
-   * Get a value at the specified coordinates
-   * @param row - Row index
-   * @param col - Column index
-   * @returns The value at the specified coordinates
-   */
-  private getValue(
-    row: number,
-    col: number
-  ): string | number | null | undefined {
-    if (row < 0 || col < 0) {
-      throw new Error(`Invalid coordinates: [${row}, ${col}]`);
-    }
-
-    if (row >= this.data.length) {
-      return null;
-    }
-
-    const rowData = this.data[row];
-    if (col >= rowData.length) {
-      return null;
-    }
-
-    return rowData[col];
-  }
-
-  /**
    * Set a value at the specified coordinates
    * @param row - Row index
    * @param col - Column index
@@ -215,27 +189,6 @@ export class StatefulSheetsAPI {
 
     this.ensureDataSize(row, col);
     this.data[row][col] = value;
-  }
-
-  /**
-   * Get values in the specified range
-   * @param range - Range in A1 notation
-   * @returns 2D array of values in the range
-   */
-  private getRange(range: string): (string | number | null | undefined)[][] {
-    const { startRow, startCol, endRow, endCol } = A1Utils.parseRange(range);
-
-    const result: (string | number | null | undefined)[][] = [];
-
-    for (let row = startRow; row <= endRow; row++) {
-      const rowData: (string | number | null | undefined)[] = [];
-      for (let col = startCol; col <= endCol; col++) {
-        rowData.push(this.getValue(row, col));
-      }
-      result.push(rowData);
-    }
-
-    return result;
   }
 
   /**

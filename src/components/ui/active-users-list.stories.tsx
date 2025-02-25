@@ -154,25 +154,25 @@ const meta = {
           <div className="flex gap-2">
             <button
               onClick={addUser}
-              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
             >
               Add User
             </button>
             <button
               onClick={removeUser}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              className="rounded bg-red-500 px-3 py-1 text-white hover:bg-red-600"
             >
               Remove User
             </button>
             <button
               onClick={updateUser}
-              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+              className="rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600"
             >
               Update User
             </button>
             <button
               onClick={toggleCell}
-              className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
+              className="rounded bg-purple-500 px-3 py-1 text-white hover:bg-purple-600"
             >
               Toggle Cell
             </button>
