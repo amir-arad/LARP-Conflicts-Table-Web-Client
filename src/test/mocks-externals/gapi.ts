@@ -41,7 +41,7 @@ export function createMockGapi(config: MockGapiConfig = {}) {
         init: () => Promise.resolve(),
         setToken: () => {},
       },
-      load: (lib: string, callback: () => void) => callback(),
+      load: (_lib: string, callback: () => void) => callback(),
       auth: {
         getToken: () => null,
         setToken: () => {},
@@ -71,7 +71,7 @@ export function createMockGapi(config: MockGapiConfig = {}) {
       init: () => Promise.resolve(),
       setToken: () => {},
     },
-    load: (lib: string, callback: () => void) => callback(),
+    load: (_lib: string, callback: () => void) => callback(),
     auth: {
       getToken: () => null,
       setToken: () => {},

@@ -27,7 +27,7 @@ beforeEach(() => {
         init: vi.fn().mockResolvedValue(undefined),
         setToken: vi.fn(),
       },
-      load: vi.fn((lib, callback) => callback()),
+      load: vi.fn((_lib, callback) => callback()),
       auth: {
         getToken: vi.fn().mockReturnValue(null),
         setToken: vi.fn(),

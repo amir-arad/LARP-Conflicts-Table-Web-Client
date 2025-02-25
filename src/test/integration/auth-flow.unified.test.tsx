@@ -1,10 +1,17 @@
-import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
-import { renderWithEnhancedWrapper } from './enhanced-helpers-fixed'; // Using our fixed enhanced helpers
-import { authFixtures, sheetFixtures } from '../fixtures';
-import { DatabaseReference } from 'firebase/database';
 import '@testing-library/jest-dom/vitest';
-import { act } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
+import { DatabaseReference } from 'firebase/database';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  Mock,
+  test,
+  vi,
+} from 'vitest';
+import { authFixtures, sheetFixtures } from '../fixtures';
+import { renderWithEnhancedWrapper } from './enhanced-helpers-fixed'; // Using our fixed enhanced helpers
 
 // Type for mock calls
 type MockCall = [DatabaseReference, Record<string, unknown>];
@@ -356,7 +363,7 @@ describe('Authentication Flow', () => {
       const loginMock = vi.fn();
       await act(async () => {
         if (typeof login === 'object' && 'mockImplementation' in login) {
-          (login as any).mockImplementation(loginMock);
+          (login as Mock<() => void>).mockImplementation(loginMock);
         }
       });
 
@@ -379,7 +386,7 @@ describe('Authentication Flow', () => {
       const loginButton = screen.queryByTestId('login-button');
       if (loginButton && loginButton.parentElement) {
         await act(async () => {
-          loginButton.parentElement.removeChild(loginButton);
+          loginButton.parentElement?.removeChild(loginButton);
         });
       }
 

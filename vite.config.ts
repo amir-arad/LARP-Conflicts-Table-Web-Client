@@ -42,6 +42,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     },
     build: {
       sourcemap: true,
+      cssMinify: 'lightningcss',
     },
 
     server: {

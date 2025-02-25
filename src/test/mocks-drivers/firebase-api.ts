@@ -414,12 +414,12 @@ export function createMockImplementation(
 
     goOffline: vi.fn(() => {
       state.isOnline = false;
-      state.disconnectHandlers.forEach((cleanup, path) => {
+      for (const path of state.disconnectHandlers.keys()) {
         if (path.includes('/presence/')) {
           state.values.delete(path);
           notifySubscribers(state, 'sheets/test-sheet-id/presence', {});
         }
-      });
+      }
     }),
   };
 }

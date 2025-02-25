@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReactElement } from 'react';
@@ -24,8 +25,7 @@ export async function renderWithEnhancedWrapper(
     mockConfig?: Record<string, unknown>;
   } = {}
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { component = null, storyName = null, mockConfig = {} } = options;
+  const { component = null, storyName = null } = options;
 
   // Create test wrapper with standardized mocks
   const testWrapper = createTestWrapper();
@@ -107,7 +107,10 @@ export async function renderWithEnhancedWrapper(
               testWrapper.mockGoogleSheets.api.load &&
               (await testWrapper.mockGoogleSheets.api
                 .load()
-                .then(result => !!result?.result?.values?.length)
+                .then(
+                  (result: { result?: { values?: unknown[] } }) =>
+                    !!result?.result?.values?.length
+                )
                 .catch(() => false));
 
             if (!hasData) {

@@ -20,6 +20,8 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     outputs:
       cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
@@ -111,14 +113,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run lint
-        run: npm run lint
+      - name: Run TypeScript check
+        run: npm run typecheck
+
+      - name: Run lint check
+        run: npm run lint:check
 
       - name: Run format check
-        run: npm run format -- --check
+        run: npm run format:check
+
+      - name: Run build check
+        run: npm run build:check
 
   test:
-    needs: [setup, quality]
+    needs: [setup]
     runs-on: ubuntu-latest
     steps:
       - name: Restore cached repository
@@ -149,7 +157,7 @@ jobs:
         run: npm run build-storybook
 
   build:
-    needs: [test, security]
+    needs: [setup, test, quality, security]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
@@ -197,19 +205,3 @@ jobs:
       - name: Run smoke test
         run: |
           curl -sSf ${{ steps.deployment.outputs.page_url }} > /dev/null
-
-      - name: Notify on success
-        if: success()
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_MESSAGE: 'Successfully deployed to GitHub Pages: ${{ steps.deployment.outputs.page_url }}'
-          SLACK_COLOR: good
-
-      - name: Notify on failure
-        if: failure()
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_MESSAGE: 'Failed to deploy to GitHub Pages'
-          SLACK_COLOR: danger

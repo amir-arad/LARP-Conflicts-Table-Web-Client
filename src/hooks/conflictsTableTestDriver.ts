@@ -1,7 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { expect, vi } from 'vitest';
+import { expect, Mock, vi } from 'vitest';
 import { createTestWrapper } from '../test/test-wrapper';
 import { CellId, ConflictsTable, useConflictsTable } from './useConflictsTable';
+
+type SheetApiCall = [string, unknown[]?];
+type SheetApiMock = Mock<(...args: SheetApiCall) => Promise<unknown>>;
 
 export interface ExpectedTableData {
   conflicts?: string[];
@@ -73,8 +76,10 @@ export class ConflictsTableTestDriver {
     expectedValues?: unknown[][]
   ) {
     return waitFor(() => {
-      const mockFn = this.testWrapper.mockGoogleSheets.api[method];
-      const calls = mockFn.mock.calls.filter(call => {
+      const mockFn = this.testWrapper.mockGoogleSheets.api[
+        method
+      ] as SheetApiMock;
+      const calls = mockFn.mock.calls.filter((call: SheetApiCall) => {
         // Filter calls by range to handle multiple operations
         const range = call[0];
         return method === 'load' || range === expectedRange;
