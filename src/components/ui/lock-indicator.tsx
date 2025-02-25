@@ -16,11 +16,11 @@ export const LockIndicator: React.FC<LockIndicatorProps> = ({
 
   return (
     <>
-      <div className="absolute -top-2 -right-2 bg-white rounded-full p-0.5 shadow-sm">
+      <div className="absolute -top-2 -right-2 rounded-full bg-white p-0.5 shadow-sm">
         <Lock size={14} className="text-red-400" />
       </div>
       {lockOwner && (
-        <div className="absolute invisible group-hover:visible -top-8 right-0 bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+        <div className="invisible absolute -top-8 right-0 rounded bg-black px-2 py-1 text-xs whitespace-nowrap text-white group-hover:visible">
           Locked by {lockOwner.name}
         </div>
       )}

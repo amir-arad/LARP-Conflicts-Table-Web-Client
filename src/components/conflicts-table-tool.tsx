@@ -85,20 +85,20 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
 
   return (
     <ErrorBoundary component="ConflictsTableTool">
-      <div className="p-4 max-w-full overflow-x-auto">
+      <div className="max-w-full overflow-x-auto p-4">
         <Card className="mb-4">
           <CardHeader>
-            <div className="flex justify-between items-center gap-4 [dir='rtl']:flex-row-reverse">
+            <div className="flex items-center justify-between gap-4 [dir='rtl']:flex-row-reverse">
               <CardTitle>{t('app.title')}</CardTitle>
               <ActiveUsersList
                 presence={presence}
-                className="flex-1 max-w-md"
+                className="max-w-md flex-1"
               />
               <a
                 href={`https://docs.google.com/spreadsheets/d/${sheetId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 [dir='rtl']:flex-row-reverse whitespace-nowrap"
+                className="flex items-center gap-2 rounded bg-purple-500 px-4 py-2 whitespace-nowrap text-white hover:bg-purple-600 [dir='rtl']:flex-row-reverse"
               >
                 <Link size={16} /> {t('app.openInSheets')}
               </a>
@@ -115,16 +115,16 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
               <AlertDescription>{t('app.autoSave')}</AlertDescription>
             </Alert>
 
-            <div className="flex gap-4 mb-4 [dir='rtl']:flex-row-reverse">
+            <div className="mb-4 flex gap-4 [dir='rtl']:flex-row-reverse">
               <button
                 onClick={handleAddConflict}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 [dir='rtl']:flex-row-reverse"
+                className="flex items-center gap-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 [dir='rtl']:flex-row-reverse"
               >
                 <Plus size={16} /> {t('action.addConflict')}
               </button>
               <button
                 onClick={handleAddRole}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 [dir='rtl']:flex-row-reverse"
+                className="flex items-center gap-2 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 [dir='rtl']:flex-row-reverse"
               >
                 <Plus size={16} /> {t('action.addRole')}
               </button>
@@ -133,7 +133,7 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
             <div className="mb-4">
               <div className="flex flex-col gap-4">
                 <div>
-                  <h3 className="font-semibold mb-2 flex items-center gap-2 [dir='rtl']:flex-row-reverse">
+                  <h3 className="mb-2 flex items-center gap-2 font-semibold [dir='rtl']:flex-row-reverse">
                     <Filter size={16} /> {t('filter.roles')}
                   </h3>
                   <div className="flex flex-wrap gap-2 [dir='rtl']:flex-row-reverse">
@@ -141,7 +141,7 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                       <button
                         key={role.cellRef}
                         onClick={() => toggleRoleFilter(role.cellRef)}
-                        className={`px-3 py-1 rounded-full text-sm ${
+                        className={`rounded-full px-3 py-1 text-sm ${
                           roleFilters.includes(role.cellRef)
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -153,7 +153,7 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-2 flex items-center gap-2 [dir='rtl']:flex-row-reverse">
+                  <h3 className="mb-2 flex items-center gap-2 font-semibold [dir='rtl']:flex-row-reverse">
                     <Filter size={16} /> {t('filter.conflicts')}
                   </h3>
                   <div className="flex flex-wrap gap-2 [dir='rtl']:flex-row-reverse">
@@ -161,7 +161,7 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
                       <button
                         key={conflict.cellRef}
                         onClick={() => toggleConflictFilter(conflict.cellRef)}
-                        className={`px-3 py-1 rounded-full text-sm ${
+                        className={`rounded-full px-3 py-1 text-sm ${
                           conflictFilters.includes(conflict.cellRef)
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'

@@ -14,7 +14,7 @@ export function ConnectionStatusIndicator() {
   return (
     <div
       className={cn(
-        'fixed bottom-4 right-4 p-2 rounded-md shadow-md flex items-center gap-2 text-sm transition-colors',
+        'fixed right-4 bottom-4 flex items-center gap-2 rounded-md p-2 text-sm shadow-md transition-colors',
         {
           'bg-gray-100 text-gray-600': isInitializing,
           'bg-red-100 text-red-600': hasError,
@@ -24,7 +24,7 @@ export function ConnectionStatusIndicator() {
       )}
     >
       <div
-        className={cn('w-2 h-2 rounded-full', {
+        className={cn('h-2 w-2 rounded-full', {
           'bg-gray-500': isInitializing,
           'bg-red-500': hasError,
           'bg-green-500': isConnected,

@@ -25,16 +25,16 @@ const ErrorBoundaryFallback = ({
   const { t } = useTranslations();
 
   return (
-    <div className="p-4 m-4 border border-red-500 rounded bg-red-50">
-      <h2 className="text-lg font-semibold text-red-700 mb-2">
+    <div className="m-4 rounded border border-red-500 bg-red-50 p-4">
+      <h2 className="mb-2 text-lg font-semibold text-red-700">
         {t('error.somethingWentWrong')}
       </h2>
-      <p className="text-red-600 mb-4">
+      <p className="mb-4 text-red-600">
         {import.meta.env.DEV ? error?.message : t('error.tryAgainLater')}
       </p>
       <button
         onClick={resetError}
-        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+        className="rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
       >
         {t('error.tryAgain')}
       </button>

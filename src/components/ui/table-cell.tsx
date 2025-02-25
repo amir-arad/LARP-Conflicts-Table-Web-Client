@@ -47,7 +47,7 @@ export const EditableTableCell = React.forwardRef<
         ref={ref}
         id={cellId}
         className={cn(
-          'border p-2 relative group',
+          'group relative border p-2',
           isHeader && 'bg-gray-100',
           getContentClass(content),
           lockInfo && 'border-red-400'
@@ -69,7 +69,7 @@ export const EditableTableCell = React.forwardRef<
             }}
             className={cn(
               'flex-1',
-              onUpdate && 'focus:outline-none focus:bg-blue-50'
+              onUpdate && 'focus:bg-blue-50 focus:outline-none'
             )}
           >
             {content}

@@ -34,21 +34,21 @@ export function ActiveUsersList({ className, presence }: ActiveUsersListProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2 p-2 bg-white/50 backdrop-blur-sm rounded-lg shadow-sm min-h-[48px] min-w-[48px]',
-        'transition-all duration-300 ease-in-out transform',
+        'flex min-h-[48px] min-w-[48px] items-center gap-2 rounded-lg bg-white/50 p-2 shadow-sm backdrop-blur-sm',
+        'transform transition-all duration-300 ease-in-out',
         usersIter.length === 0
-          ? 'opacity-50 scale-95'
-          : 'opacity-100 scale-100',
+          ? 'scale-95 opacity-50'
+          : 'scale-100 opacity-100',
         className
       )}
       data-testid="active-users-list"
     >
-      <div className="flex -space-x-2 min-w-[32px] transition-all duration-300 ease-in-out">
+      <div className="flex min-w-[32px] -space-x-2 transition-all duration-300 ease-in-out">
         {usersIter.map(({ id, user, isNew }) => (
           <div
             key={id}
             className={cn(
-              'relative inline-block transition-all duration-300 ease-in-out transform',
+              'relative inline-block transform transition-all duration-300 ease-in-out',
               isNew && 'translate-y-4 opacity-0',
               'hover:z-10 hover:-translate-y-1 hover:scale-110',
               user.activeCell && 'ring-offset-2'
@@ -68,8 +68,8 @@ export function ActiveUsersList({ className, presence }: ActiveUsersListProps) {
             {user.activeCell && (
               <span
                 className={cn(
-                  'absolute bottom-0 right-0 h-3 w-3 rounded-full bg-blue-500 ring-2 ring-white',
-                  'transition-all duration-300 ease-in-out transform',
+                  'absolute right-0 bottom-0 h-3 w-3 rounded-full bg-blue-500 ring-2 ring-white',
+                  'transform transition-all duration-300 ease-in-out',
                   'animate-pulse'
                 )}
               />

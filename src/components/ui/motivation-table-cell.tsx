@@ -33,7 +33,7 @@ export const MotivationTableCell = React.forwardRef<
         ref={ref}
         id={cellId}
         className={cn(
-          'border p-2 relative group',
+          'group relative border p-2',
           getContentClass(content),
           lockInfo && 'border-red-400'
         )}
@@ -51,7 +51,7 @@ export const MotivationTableCell = React.forwardRef<
             onFocusChange(false);
             onUpdate(e.target.textContent || '');
           }}
-          className="min-h-8 focus:outline-none focus:bg-blue-50"
+          className="min-h-8 focus:bg-blue-50 focus:outline-none"
         >
           {content}
         </div>

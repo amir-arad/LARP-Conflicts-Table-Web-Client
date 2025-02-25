@@ -37,7 +37,7 @@ export function SimpleApp() {
     return (
       <button
         onClick={login}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="flex items-center gap-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         data-testid="login-button"
       >
         {t('action.login')}

@@ -38,19 +38,19 @@ jobs:
       - name: Create env file
         run: |
           # Secret variables
-          echo "VITE_FIREBASE_API_KEY=FAKE_VITE_FIREBASE_API_KEY" >> .env
-          echo "VITE_FIREBASE_AUTH_DOMAIN=FAKE_VITE_FIREBASE_AUTH_DOMAIN" >> .env
-          echo "VITE_FIREBASE_DATABASE_URL=FAKE_VITE_FIREBASE_DATABASE_URL" >> .env
-          echo "VITE_FIREBASE_PROJECT_ID=FAKE_VITE_FIREBASE_PROJECT_ID" >> .env
-          echo "VITE_FIREBASE_STORAGE_BUCKET=FAKE_VITE_FIREBASE_STORAGE_BUCKET" >> .env
-          echo "VITE_GOOGLE_API_KEY=FAKE_VITE_GOOGLE_API_KEY" >> .env
-          echo "VITE_GOOGLE_SPREADSHEET_ID=FAKE_VITE_GOOGLE_SPREADSHEET_ID" >> .env
+          echo "VITE_FIREBASE_API_KEY=your-firebase-api-key" >> .env
+          echo "VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com" >> .env
+          echo "VITE_FIREBASE_DATABASE_URL=https://your-project-default-rtdb.firebaseio.com" >> .env
+          echo "VITE_FIREBASE_PROJECT_ID=your-project-id" >> .env
+          echo "VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com" >> .env
+          echo "VITE_GOOGLE_API_KEY=your-google-api-key" >> .env
+          echo "VITE_GOOGLE_SPREADSHEET_ID=your-spreadsheet-id" >> .env
 
           # Public variables
-          echo "VITE_GOOGLE_CLIENT_ID=FAKE_VITE_GOOGLE_CLIENT_ID" >> .env
-          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=FAKE_VITE_FIREBASE_MESSAGING_SENDER_ID" >> .env
-          echo "VITE_FIREBASE_APP_ID=FAKE_VITE_FIREBASE_APP_ID" >> .env
-          echo "VITE_ROLES_CONFLICT_SHEET_ID=FAKE_VITE_ROLES_CONFLICT_SHEET_ID" >> .env
+          echo "VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com" >> .env
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id" >> .env
+          echo "VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456" >> .env
+          echo "VITE_ROLES_CONFLICT_SHEET_ID=Sheet1" >> .env
 
       - name: Cache repository
         uses: actions/cache@v4
@@ -160,8 +160,8 @@ jobs:
       - name: Run format check
         run: npm run format:check
 
-      - name: Run build check
-        run: npm run build:check
+      - name: Run build
+        run: npm run build
 
   test:
     needs: setup
