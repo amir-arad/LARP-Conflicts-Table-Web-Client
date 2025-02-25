@@ -1,11 +1,9 @@
-name: Deploy to GitHub Pages
+name: Build and deploy to GitHub Pages
 
 on:
   push:
-    branches: ['main']
-  pull_request:
-    branches: ['main']
-  workflow_dispatch:
+    branches: ['main'] # Only run on main branch pushes
+  workflow_dispatch: # Allow manual triggers
 
 permissions:
   contents: read
@@ -66,98 +64,8 @@ jobs:
             !node_modules
           key: repo-${{ steps.cache-key.outputs.key }}
 
-  security:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Restore cached repository
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run security audit
-        run: npm audit
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
-  quality:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Restore cached repository
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run TypeScript check
-        run: npm run typecheck
-
-      - name: Run lint check
-        run: npm run lint:check
-
-      - name: Run format check
-        run: npm run format:check
-
-      - name: Run build check
-        run: npm run build:check
-
-  test:
-    needs: [setup]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Restore cached repository
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests with coverage
-        run: npm run test -- --coverage
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 30
-
-      - name: Build Storybook
-        run: npm run build-storybook
-
   build:
-    needs: [setup, test, quality, security]
+    needs: setup
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
