@@ -22,6 +22,23 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     test: {
       environment: 'jsdom',
       globals: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: [
+          'src/**/*.d.ts',
+          'src/**/*.test.{ts,tsx}',
+          'src/**/*.stories.{ts,tsx}',
+          'src/test/**/*',
+        ],
+        thresholds: {
+          branches: 90,
+          functions: 95,
+          lines: 95,
+          statements: 95,
+        },
+      },
     },
     build: {
       sourcemap: true,
