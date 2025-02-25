@@ -3,8 +3,6 @@ name: CI
 on:
   push:
     branches: ['**']
-  pull_request:
-    branches: ['**'] # Run on PRs to any branch
 
 permissions:
   contents: read
