@@ -60,9 +60,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            .
-            !node_modules
+            **
+            !**/node_modules/**
           key: repo-${{ steps.cache-key.outputs.key }}
+
+      - name: Verify cache key output
+        run: |
+          echo "Cache key output: ${{ steps.cache-key.outputs.key }}"
 
   build:
     needs: setup
@@ -72,10 +76,17 @@ jobs:
       name: github-pages
     steps:
       - name: Restore cached repository
+        id: restore-cache
         uses: actions/cache@v4
         with:
           path: .
           key: repo-${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            repo-
+
+      - name: Checkout if cache miss
+        if: steps.restore-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
