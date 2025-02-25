@@ -9,22 +9,64 @@ permissions:
   security-events: write
 
 jobs:
-  setup:
+  security:
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
-      - name: Echo debug info
-        run: |
-          echo "Running on branch: ${{ github.ref }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Workflow name: ${{ github.workflow }}"
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate cache key
-        id: cache-key
-        run: echo "key=${{ hashFiles('package-lock.json') }}-${{ github.sha }}" >> $GITHUB_OUTPUT
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=critical || echo "Non-critical vulnerabilities found"
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript check
+        run: npm run typecheck
+
+      - name: Run lint check
+        run: npm run lint:check
+
+      - name: Run format check
+        run: npm run format:check
+
+      - name: Run build
+        run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -45,171 +87,17 @@ jobs:
           echo "VITE_FIREBASE_MESSAGING_SENDER_ID=123456789012" >> .env
           echo "VITE_FIREBASE_APP_ID=1:123456789012:web:abcdef123456789012" >> .env
           echo "VITE_FIREBASE_MEASUREMENT_ID=G-ABCDEF12345" >> .env
-
           echo "VITE_GOOGLE_API_KEY=test-google-api-key" >> .env
           echo "VITE_GOOGLE_CLIENT_ID=test-client-id.apps.googleusercontent.com" >> .env
           echo "VITE_GOOGLE_SPREADSHEET_ID=test-spreadsheet-id" >> .env
           echo "VITE_ROLES_CONFLICT_SHEET_ID=Sheet1" >> .env
-
-          echo "Created .env file for testing environment"
-
-      - name: Cache repository
-        uses: actions/cache@v4
-        with:
-          path: |
-            **
-            !**/node_modules/**
-          key: repo-${{ steps.cache-key.outputs.key }}
-
-      - name: Verify cache key output
-        run: |
-          echo "Cache key output: ${{ steps.cache-key.outputs.key }}"
-          ls -la
-
-  security:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug Setup Outputs
-        run: |
-          echo "Cache Key from setup job: ${{ needs.setup.outputs.cache-key }}"
-          echo "Commit SHA: ${{ github.sha }}"
-
-      - name: Restore cached repository
-        id: restore-cache
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-          # Add fallback key
-          restore-keys: |
-            repo-
-
-      - name: Checkout if cache miss
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run security audit
-        run: npm audit --audit-level=critical || echo "Non-critical vulnerabilities found"
-
-      # We add a conditional check to ensure we only run CodeQL if we have code
-      - name: Check if code is available
-        id: check-code
-        run: |
-          if [ -f "package.json" ]; then
-            echo "Code is available, proceeding with CodeQL"
-            echo "code_available=true" >> $GITHUB_OUTPUT
-          else
-            echo "Code is not available, skipping CodeQL"
-            echo "code_available=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Initialize CodeQL
-        if: steps.check-code.outputs.code_available == 'true'
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript
-
-      - name: Perform CodeQL Analysis
-        if: steps.check-code.outputs.code_available == 'true'
-        uses: github/codeql-action/analyze@v3
-
-  quality:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug quality job
-        run: |
-          echo "Starting quality job"
-          echo "Cache key from setup: ${{ needs.setup.outputs.cache-key }}"
-
-      - name: Restore cached repository
-        id: restore-cache
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            repo-
-
-      - name: Checkout if cache miss
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run TypeScript check
-        run: npm run typecheck
-
-      - name: Run lint check
-        run: npm run lint:check
-
-      - name: Run format check
-        run: npm run format:check
-
-      - name: Run build
-        run: npm run build
-
-  test:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug test job
-        run: |
-          echo "Starting test job"
-          echo "Cache key from setup: ${{ needs.setup.outputs.cache-key }}"
-
-      - name: Restore cached repository
-        id: restore-cache
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            repo-
-
-      - name: Checkout if cache miss
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Verify env file
-        run: |
-          # Verify that the .env file exists - fail if it doesn't
-          if [ ! -f ".env" ]; then
-            echo "ERROR: .env file is missing. Deployment requires environment variables."
-            exit 1
-          fi
+          echo "VITE_CI=true" >> .env
 
       - name: Run tests with coverage
         run: |
           # Display test environment
           echo "Running tests with Node.js $(node --version)"
           echo "NPM version: $(npm --version)"
-
-          # Add CI flag to env file for test detection
-          echo "VITE_CI=true" >> .env
 
           # Run tests with coverage in test environment
           NODE_ENV=test npm run test -- --coverage

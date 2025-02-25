@@ -16,19 +16,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
+  build:
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-    outputs:
-      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Generate cache key
-        id: cache-key
-        run: echo "key=${{ hashFiles('package-lock.json') }}-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -76,54 +71,6 @@ jobs:
           # Display env file created (excluding sensitive values)
           echo "Created .env file"
           cat .env | grep -v "KEY" | grep -v "ID"
-
-      - name: Cache repository
-        uses: actions/cache@v4
-        with:
-          path: |
-            **
-            !**/node_modules/**
-          key: repo-${{ steps.cache-key.outputs.key }}
-
-      - name: Verify cache key output
-        run: |
-          echo "Cache key output: ${{ steps.cache-key.outputs.key }}"
-
-  build:
-    needs: setup
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-    steps:
-      - name: Restore cached repository
-        id: restore-cache
-        uses: actions/cache@v4
-        with:
-          path: .
-          key: repo-${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            repo-
-
-      - name: Checkout if cache miss
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Verify env file
-        run: |
-          # Verify that the .env file exists - fail if it doesn't
-          if [ ! -f ".env" ]; then
-            echo "ERROR: .env file is missing. Deployment requires environment variables."
-            exit 1
-          fi
 
       - name: Build
         run: npm run build
