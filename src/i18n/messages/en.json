@@ -6,6 +6,7 @@
   "action.addConflict": "Add Conflict",
   "action.addRole": "Add Role",
   "action.login": "Log In",
+  "action.loginPrompt": "Please log In",
   "action.authenticating": "Authenticating...",
   "filter.roles": "Role Filters",
   "filter.conflicts": "Conflict Filters",

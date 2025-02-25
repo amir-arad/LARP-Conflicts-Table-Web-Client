@@ -1,110 +1,62 @@
-# Decision Log
+## 2/25/2025 - Role Management Test Implementation
 
-This document tracks key architectural and implementation decisions made during the development of the LARP Conflicts Table Web Client.
+**Context:**
 
-## February 24, 2025 - Initial Architecture Review
+- Role management tests had low coverage (~25%)
+- Critical functionality for table interactions
+- Need for comprehensive testing approach
 
-**Context:** Comprehensive review of the existing architecture and implementation to understand the system design and collaboration features.
+**Decisions Made:**
 
-**Decisions Identified:**
+1. Implement Extended Testing Approach
 
-### 1. Decentralized Architecture with Google Sheets + Firebase
+   - Use resilient testing patterns
+   - Create comprehensive test scenarios
+   - Focus on real-world use cases
 
-**Context:** Need for persistent data storage with real-time collaboration capabilities.
+2. Test Coverage Strategy
+   - Target 80%+ coverage
+   - Validate core role management operations
+   - Implement robust error handling
 
-**Decision:** Use Google Sheets as the source of truth for data persistence and Firebase Realtime Database for real-time collaboration features.
+**Key Implementation Details:**
 
-**Rationale:**
+- Developed tests for:
+  - Basic role addition/removal
+  - Data persistence verification
+  - Collaborative editing scenarios
+  - Error handling and recovery
 
-- Google Sheets provides familiar interface and built-in sharing/permissions
-- Firebase RTDB offers real-time synchronization with minimal setup
-- Decentralized approach avoids need for dedicated backend server
-- Combination leverages strengths of both platforms
+**Technical Challenges Addressed:**
 
-**Implementation:**
+1. Async Test Handling
 
-- GoogleSheetsContext for Sheets API interactions
-- FirebaseContext for RTDB operations
-- Clear separation of concerns between data persistence and real-time features
+   - Implemented safeAct for reliable async operations
+   - Created robust mock management
+   - Handled complex event sequences
 
-### 2. Optimistic UI Locking for Concurrency
-
-**Context:** Need to prevent conflicts when multiple users edit the same content simultaneously.
-
-**Decision:** Implement optimistic UI locking with visual indicators rather than pessimistic database locking.
-
-**Rationale:**
-
-- Simpler implementation than conflict resolution
-- Better user experience with clear visual feedback
-- Reduced backend complexity
-- Social protocol (showing who is editing what) reduces conflict likelihood
-- TTL-based expiration prevents permanent locks
-
-**Implementation:**
-
-- Lock state visualization in UI
-- Firebase RTDB for lock tracking
-- 30-second TTL for automatic lock expiration
-- Clear user feedback on locked state
-
-### 3. React Context for State Management
-
-**Context:** Need for state management across components with different concerns.
-
-**Decision:** Use React Context API for state management instead of Redux or other state management libraries.
+2. Error Scenario Testing
+   - Network interruption simulation
+   - API error recovery mechanisms
+   - Concurrent editing validation
 
 **Rationale:**
 
-- Appropriate complexity level for the application
-- Natural fit for provider pattern used throughout the app
-- Easier testing with context injection
-- Reduced dependencies and bundle size
-- Clear separation of concerns with multiple contexts
+- Improve system reliability
+- Validate core collaboration features
+- Ensure robust error handling
+- Provide comprehensive test coverage
 
-**Implementation:**
+**Outcomes:**
 
-- AuthContext for authentication state
-- FirebaseContext for Firebase operations
-- GoogleSheetsContext for Sheets API
-- LanguageContext for internationalization
+- Increased role management test coverage
+- Identified and fixed potential edge cases
+- Established consistent testing methodology
+- Improved overall system resilience
 
-### 4. Custom Hooks for Feature Encapsulation
+**Future Recommendations:**
 
-**Context:** Need to encapsulate complex logic and make it reusable across components.
-
-**Decision:** Implement custom hooks for specific features like table management, presence, and flags.
-
-**Rationale:**
-
-- Encapsulates complex logic in reusable units
-- Separates concerns between UI and business logic
-- Improves testability with mock implementations
-- Provides clear API for components to consume
-
-**Implementation:**
-
-- useConflictsTable for table data management
-- usePresence for user presence tracking
-- useFlags for feature flags and filters
-- useTranslations for internationalization
-
-### 5. Internationalization Support
-
-**Context:** Need to support multiple languages for the application.
-
-**Decision:** Implement custom internationalization solution with context provider.
-
-**Rationale:**
-
-- Specific needs for LARP terminology translation
-- Support for right-to-left languages (Hebrew)
-- Lightweight implementation for the application's needs
-- Easy integration with the existing context system
-
-**Implementation:**
-
-- LanguageContext for language selection
-- I18nProvider for message loading
-- useTranslations hook for component access
-- RTL utilities for right-to-left support
+1. Continue expanding test coverage
+2. Develop more sophisticated mock drivers
+3. Create reusable testing patterns
+4. Implement performance testing scenarios

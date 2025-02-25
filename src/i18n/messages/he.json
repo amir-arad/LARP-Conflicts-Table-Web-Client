@@ -6,6 +6,7 @@
   "action.addConflict": "הוסף קונפליקט",
   "action.addRole": "הוסף תפקיד",
   "action.login": "התחבר",
+  "action.loginPrompt": "תתחבר יא אללה איתך",
   "action.authenticating": "מאמת...",
   "filter.roles": "סינון תפקידים",
   "filter.conflicts": "סינון קונפליקטים",
