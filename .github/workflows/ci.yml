@@ -14,8 +14,11 @@ jobs:
     outputs:
       cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
-      - name: Echo GitHub context
-        run: echo "${{ toJSON(github) }}"
+      - name: Echo debug info
+        run: |
+          echo "Running on branch: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Workflow name: ${{ github.workflow }}"
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -69,7 +72,7 @@ jobs:
       - name: Debug Setup Outputs
         run: |
           echo "Cache Key from setup job: ${{ needs.setup.outputs.cache-key }}"
-          echo "Direct cache key calculation: ${{ hashFiles('package-lock.json') }}-${{ github.sha }}"
+          echo "Commit SHA: ${{ github.sha }}"
 
       - name: Restore cached repository
         uses: actions/cache@v4
