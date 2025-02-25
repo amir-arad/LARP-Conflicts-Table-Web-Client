@@ -1,205 +1,48 @@
-# System Patterns
+## Integration Testing Patterns for Complex UI Interactions
 
-## Testing Infrastructure Patterns
+### Motivation Editing Test Approach
 
-### 1. Resilient Element Discovery Pattern
+#### Key Testing Patterns
 
-**Context:** Complex web applications require flexible and robust element discovery mechanisms for testing.
+1. **Resilient Event Simulation**
 
-**Pattern:** Implement a dynamic, multi-strategy element discovery system that can handle various UI states and multilingual scenarios.
+   - Use of `userEvent` for realistic user interactions
+   - Simulate complex event sequences (focus, input, blur)
+   - Handle contenteditable elements with precise event dispatching
 
-**Key Characteristics:**
+2. **Mock-Driven Testing**
 
-- Multiple discovery strategies
-- Fallback mechanisms
-- Language-aware matching
-- Comprehensive error handling
+   - Comprehensive mock setup for external APIs
+   - Simulate error and success scenarios
+   - Verify interaction flows through mock call inspections
 
-**Implementation Strategies:**
+3. **Extended Test Coverage**
+   - Multiple test groups covering different interaction scenarios
+   - Comprehensive error handling tests
+   - Collaborative editing simulation
 
-```typescript
-async function adaptiveElementDiscovery(options: {
-  testId?: string;
-  text?: string | RegExp;
-  role?: string;
-  languages?: string[];
-  fallbackCreation?: boolean;
-}): Promise<HTMLElement> {
-  const {
-    testId,
-    text,
-    role,
-    languages = ['en', 'he'],
-    fallbackCreation = true,
-  } = options;
+#### Implementation Techniques
 
-  // Multiple discovery strategies
-  const discoveryStrategies = [
-    // Strategy 1: Find by test ID
-    () => (testId ? screen.getByTestId(testId) : null),
+- Use of `safeAct` for async test operations
+- Detailed mock configuration
+- Explicit error and success path testing
+- Fallback mechanism for DOM element creation
 
-    // Strategy 2: Find by role and multilingual text
-    () => {
-      if (role && text) {
-        for (const lang of languages) {
-          try {
-            return screen.getByRole(role, { name: text });
-          } catch {}
-        }
-      }
-      return null;
-    },
+### Recommended Patterns for Future Tests
 
-    // Strategy 3: Find by text
-    () => (text ? screen.getByText(text) : null),
-  ];
+- Use similar extended testing approach for other complex UI interactions
+- Implement comprehensive mock drivers
+- Create resilient test helpers that can handle various interaction scenarios
+- Focus on simulating real-world user interactions
 
-  // Try each strategy
-  for (const strategy of discoveryStrategies) {
-    try {
-      const element = strategy();
-      if (element) return element;
-    } catch {}
-  }
+### Testing Anti-Patterns Avoided
 
-  // Fallback element creation
-  if (fallbackCreation) {
-    return createFallbackElement({
-      testId,
-      text: typeof text === 'string' ? text : text?.toString(),
-      role,
-    });
-  }
+- Avoid overly simplistic event simulation
+- Prevent brittle tests that depend on exact implementation details
+- Minimize hardcoded expectations
 
-  throw new Error('Element not found');
-}
-```
+### Continuous Improvement Suggestions
 
-**Benefits:**
-
-- Increased test reliability
-- Better handling of edge cases
-- Support for multilingual applications
-- More maintainable test infrastructure
-
-### 2. Comprehensive Error Handling Pattern
-
-**Context:** Modern web applications require sophisticated error handling in testing.
-
-**Pattern:** Develop a standardized, flexible error handling and simulation system.
-
-**Key Components:**
-
-- Centralized error type definitions
-- Flexible error simulation
-- Comprehensive logging
-- Adaptive recovery mechanisms
-
-**Implementation Example:**
-
-```typescript
-enum TestErrorType {
-  Network = 'network',
-  Authentication = 'auth',
-  Permission = 'permission',
-  Server = 'server',
-}
-
-class TestErrorHandler {
-  static simulate(errorType: TestErrorType, context?: Record<string, unknown>) {
-    switch (errorType) {
-      case TestErrorType.Network:
-        return this.simulateNetworkError(context);
-      case TestErrorType.Authentication:
-        return this.simulateAuthError(context);
-      // Other error type handlers
-    }
-  }
-
-  static log(error: Error, context?: Record<string, unknown>) {
-    console.error('Test Error:', {
-      message: error.message,
-      type: error.name,
-      context,
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  // Specific error simulation methods
-  private static simulateNetworkError(context?: Record<string, unknown>) {
-    // Network error simulation logic
-  }
-
-  private static simulateAuthError(context?: Record<string, unknown>) {
-    // Authentication error simulation logic
-  }
-}
-```
-
-### 3. Multilingual Test Resilience Pattern
-
-**Context:** Applications supporting multiple languages require specialized testing approaches.
-
-**Pattern:** Create adaptive testing strategies for multilingual interfaces.
-
-**Key Techniques:**
-
-- Dynamic language detection
-- Flexible text matching
-- Language-aware state management
-- Comprehensive language support
-
-**Implementation Approaches:**
-
-- Support multiple language indicators
-- Create language-switching test utilities
-- Develop comprehensive error handling for language transitions
-- Implement flexible DOM element discovery
-
-## Emerging Testing Paradigms
-
-### Adaptive Test Infrastructure
-
-**Characteristics:**
-
-- Dynamic element discovery
-- Multilingual matching strategies
-- Comprehensive error handling
-- Cross-environment compatibility
-- Language-aware testing approaches
-
-### Resilient UI Testing
-
-**Techniques:**
-
-- Manual DOM manipulation
-- Fallback element creation
-- Comprehensive state simulation
-- Flexible assertion strategies
-- Language-agnostic testing approaches
-
-## Continuous Improvement Strategies
-
-1. **Regular Pattern Review**
-
-   - Continuously document testing patterns
-   - Share knowledge across the development team
-   - Conduct regular retrospectives
-
-2. **Infrastructure Evolution**
-
-   - Develop generic testing utilities
-   - Create comprehensive mock libraries
-   - Improve cross-platform testing capabilities
-
-3. **Knowledge Sharing**
-   - Maintain detailed documentation
-   - Create internal knowledge base
-   - Conduct tech talks and workshops
-   - Develop multilingual testing guidelines
-
-## Conclusion
-
-Our testing approach has evolved from rigid, environment-specific strategies to a more flexible, adaptive system. By embracing resilience, cross-platform compatibility, multilingual support, and comprehensive error handling, we've created a robust testing infrastructure that can effectively support the dynamic nature of modern web applications.
-
-The introduction of adaptive element discovery and comprehensive error handling demonstrates our commitment to creating an intelligent, adaptable testing ecosystem that can handle the complexities of contemporary web development.
+- Regularly review and update test patterns
+- Expand mock driver capabilities
+- Develop more sophisticated event simulation techniques

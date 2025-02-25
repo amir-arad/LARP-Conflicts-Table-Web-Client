@@ -1,96 +1,67 @@
-# LARP Conflicts Table Web Client - Product Context
+## Product Testing Strategy: Integration Test Coverage
 
-## Project Overview
+### Current Testing Focus
 
-The LARP Conflicts Table Web Client is a collaborative web application designed for managing and editing conflict tables for Live Action Role-Playing (LARP) games. It enables multiple users to simultaneously view and edit a shared conflicts table with real-time collaboration features.
+- Motivation Editing Functionality
+- Collaborative Table Interaction Flows
+- Error Handling and Recovery Mechanisms
 
-## Project Goals
+### Test Coverage Goals
 
-1. Provide a user-friendly interface for managing LARP conflict tables
-2. Enable real-time collaboration between multiple users
-3. Maintain data consistency across all clients
-4. Provide clear visual indicators for user presence and editing status
-5. Support internationalization for multiple languages
-6. Ensure responsive design for various device sizes
+- Increase motivation editing test coverage from ~20% to 80%+
+- Validate complex interaction patterns
+- Ensure robust error handling
+- Simulate real-world collaborative editing scenarios
 
-## Technical Constraints
+### Key Components Tested
 
-1. Use Google Sheets as the source of truth for persistent data
-2. Use Firebase Realtime Database for real-time collaboration features
-3. Implement optimistic UI locking for concurrency control
-4. Support modern browsers (Chrome, Firefox, Safari, Edge)
-5. Maintain accessibility standards
-6. Ensure performance on various network conditions
+1. **Motivation Cell Editing**
 
-## Key Stakeholders
+   - Basic editing operations
+   - Content updates
+   - Input validation
 
-- LARP game masters and organizers
-- LARP players and participants
-- Game designers and content creators
+2. **Cell Locking Mechanism**
 
-## Memory Bank Structure
+   - Lock acquisition
+   - Concurrent editing prevention
+   - Lock release and timeout handling
 
-This Memory Bank contains the following core files:
+3. **Collaborative Editing**
 
-1. **productContext.md** (this file): Project overview, goals, constraints, and memory bank structure
-2. **activeContext.md**: Current session context, recent changes, and active goals
-3. **progress.md**: Work completed and next steps
-4. **decisionLog.md**: Key decisions and their rationale
-5. **systemPatterns.md**: Identified patterns and architectural insights
+   - Multiple user interaction scenarios
+   - Presence management
+   - Conflict resolution
 
-Additional files may be created as needed to document specific aspects of the project.
+4. **Error Handling**
+   - Network interruption recovery
+   - API error scenarios
+   - Retry mechanisms
 
-## Key Features
+### Testing Approach
 
-### Core Functionality
+- Extended integration testing
+- Mock-driven development
+- Comprehensive scenario coverage
+- Resilient test design
 
-- Editable conflicts table with roles, conflicts, and motivations
-- Add/remove roles and conflicts
-- Edit motivation cells
-- Filter by roles and conflicts
-- Open in Google Sheets option
+### Upcoming Testing Phases
 
-### Collaboration Features
+1. Complete motivation editing test suite
+2. Expand to other table interaction flows
+3. Develop more sophisticated mock drivers
+4. Implement edge case and performance testing
 
-- User presence awareness
-- Active editing indicators
-- Cell locking mechanism
-- Real-time updates
-- Connection status indicators
+### Long-term Testing Strategy
 
-### User Experience
+- Continuous test coverage improvement
+- Develop reusable testing patterns
+- Create comprehensive mock ecosystem
+- Implement automated coverage reporting
 
-- Responsive design
-- Internationalization support
-- Visual feedback for actions
-- Error handling and recovery
-- Accessibility features
+### Metrics to Track
 
-## Technical Stack
-
-- **Frontend Framework**: React with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Authentication**: Google OAuth
-- **Data Storage**: Google Sheets API
-- **Real-time Features**: Firebase Realtime Database
-- **Internationalization**: Custom i18n implementation
-- **Testing**: Vitest and React Testing Library
-
-## Implementation Status
-
-The project has implemented:
-
-- Firebase infrastructure setup
-- Basic collaboration context
-- Presence system implementation
-- Active users display
-- Core table functionality
-
-In progress or upcoming:
-
-- Cell editing UI with lock visualization
-- Live cursor indicators
-- Error handling improvements
-- Performance optimization
-- Edge case handling
+- Test coverage percentage
+- Number of scenarios tested
+- Error handling effectiveness
+- Performance of mock-based testing
