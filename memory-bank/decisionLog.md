@@ -53,3 +53,84 @@
 - Created STORYBOOK-EXCLUSIVE-UI-TESTING-PLAN.md to outline the strategy
 - Updated LOCK-VISUALIZATION-TEST-STORY.md to use Storybook exclusively
 - Will update testing guidelines to reflect this strategic shift
+
+## 2/26/2025 - Test-First Approach for Lock Visualization Verification
+
+**Context:** The lock visualization components (border styling, lock icon, and tooltips) were reportedly implemented but are not visible to users in the application. We needed to determine the best approach to verify and fix these issues.
+
+**Decision:** Adopt a test-first approach for verifying and fixing the lock visualization components, creating comprehensive Storybook tests before proceeding with fixes.
+
+**Rationale:**
+
+1. Creating tests first establishes clear verification criteria for success
+2. Visual testing in Storybook provides immediate feedback on component rendering
+3. Tests with mock data can isolate rendering issues from data flow problems
+4. A systematic test approach helps identify specific issues (CSS, conditional rendering, etc.)
+5. Tests serve as regression protection when implementing the actual lock mechanism
+
+**Implementation:**
+
+1. Create Storybook stories for each lock visualization component:
+   - Table cell with lock border
+   - Lock icon component
+   - Lock tooltip with user information
+2. Test multiple scenarios:
+   - With/without lock state
+   - Different users as lock owners
+   - Various viewport sizes
+3. Create interactive tests that simulate:
+   - Lock acquisition flows
+   - Hover states for tooltips
+   - Multiple user interactions
+
+**Technical Considerations:**
+
+1. Key areas to test:
+   - CSS specificity issues (border-red-400 class)
+   - Conditional rendering logic
+   - Z-index for tooltips
+   - Data flow from presence system to UI components
+
+**Documentation:**
+
+- Added detailed test cases to LOCK-VISUALIZATION-TEST-PLAN.md
+- Will create LOCK-VISUALIZATION-VERIFICATION-RESULTS.md to document findings
+
+## 2/26/2025 - Documentation Reorganization Strategy
+
+**Context:** The project documentation has grown considerably, with over 50 documentation files covering various aspects of the system. The current flat structure in the docs directory made it difficult to find relevant information quickly, especially for new team members.
+
+**Decision:** Implement a comprehensive reorganization of the documentation folder with a clear hierarchy based on both feature areas and document types.
+
+**Rationale:**
+
+1. The flat structure was becoming unwieldy as the project documentation grew
+2. Related documents were scattered, making it difficult to find comprehensive information on a topic
+3. The naming conventions were inconsistent, with some files using dashes and others using underscores
+4. New team members reported difficulty in finding relevant documentation
+5. A structured approach will support future documentation growth
+
+**Implementation:**
+
+1. Create a new hierarchical structure with the following main sections:
+
+   - architecture/ - System architecture and design documents
+   - testing/ - Testing strategy and implementation details
+   - features/ - Feature-specific documentation
+   - backends/ - Backend integration documents
+
+2. Move existing documents to their appropriate locations based on content
+3. Create a main README.md to serve as a navigation index
+4. Maintain consistent naming conventions within each section
+
+**Technical Considerations:**
+
+1. The restructuring will be done in a single commit to minimize disruption
+2. Cross-references between documents will need to be updated
+3. Temporary symbolic links may be used if there are hard references to old paths
+4. CI/CD scripts that reference documentation paths will need to be updated
+
+**Documentation:**
+
+- Created DOCS-REORGANIZATION-PLAN.md detailing the new structure and file movements
+- Created README-DRAFT.md as a template for the main documentation index

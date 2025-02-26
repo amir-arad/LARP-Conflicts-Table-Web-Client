@@ -1,72 +1,92 @@
-## Product Testing Strategy Update
+## Product Overview
 
-### Current Test Coverage Status
+The LARP Conflicts Table Web Client is a collaborative web application that allows multiple users to simultaneously view and edit LARP character conflicts and motivations in real-time.
 
-#### Role Management Testing
+### Key Features
 
-- **Previous Coverage:** ~25%
-- **Current Coverage:** 80%+
-- **Key Improvements:**
-  - Comprehensive role operation tests
-  - Robust error handling
-  - Collaborative scenario validation
+- Real-time collaborative editing
+- Role-based access control
+- Multi-language support
+- Visual lock indicators for collaborative editing
+- Live user presence indicators
+- Responsive design for various device sizes
 
-### Testing Methodology Evolution
+## Current Development Focus
 
-1. **Extended Testing Approach**
+### Collaboration Features Implementation
 
-   - Developed resilient testing patterns
-   - Implemented sophisticated mock drivers
-   - Created comprehensive scenario coverage
+We are currently focused on implementing real-time collaboration features, with an emphasis on:
 
-2. **Test Infrastructure Enhancements**
-   - Improved async operation handling
-   - Developed reusable test helpers
-   - Enhanced error simulation capabilities
+1. **Lock Visualization and Mechanism**: Allowing users to see when cells are being edited by others
+2. **Presence System**: Showing which users are currently active
+3. **Real-time Updates**: Ensuring all users see changes immediately
 
-### Core Testing Focus Areas
+### Testing Strategy
 
-- Basic role management operations
-- Data persistence verification
-- Collaborative editing scenarios
-- Error handling and recovery mechanisms
+#### UI Testing Evolution: Storybook-Exclusive Approach
 
-### Upcoming Testing Priorities
+We have made a strategic decision to use Storybook exclusively for all UI component and flow testing, moving away from traditional integration tests for UI verification. This approach offers several benefits:
 
-1. Performance Testing
+- **Direct Visual Verification**: Enables immediate visual inspection of UI components
+- **Interactive Testing**: Uses Storybook's play function for comprehensive user flow testing
+- **Self-Documentation**: Serves as both test suite and living documentation
+- **Isolated Testing**: Focuses on component-specific behavior without system dependencies
+- **Visual Regression Detection**: Makes it easier to identify unintended UI changes
 
-   - Stress test role management functionality
-   - Validate system behavior under load
-   - Optimize test execution efficiency
+#### Core Testing Areas
 
-2. Edge Case Exploration
-   - Identify and test rare scenarios
-   - Develop more sophisticated error simulations
-   - Expand boundary condition testing
+1. **Role Management Testing**
 
-### Long-term Testing Strategy
+   - Basic role operations
+   - Data persistence verification
+   - Collaborative editing scenarios
+   - Error handling and recovery mechanisms
 
-- Continuous test coverage improvement
-- Standardize testing patterns across components
-- Develop comprehensive test documentation
-- Integrate advanced testing techniques
+2. **Collaboration Feature Testing**
 
-### Key Metrics Tracked
+   - Real-time presence indicators
+   - Lock state visualization
+   - Collaborative editing workflows
+   - Conflict resolution mechanisms
 
-- Test coverage percentage
-- Number of scenarios tested
-- Error handling effectiveness
-- Test execution performance
+3. **Integration Testing**
+   - Google Sheets integration
+   - Firebase real-time database
+   - Authentication flows
+   - Multi-user scenarios
 
-### Testing Tools and Frameworks
+### Testing Infrastructure
 
-- Vitest for test execution
-- Custom mock drivers
-- Resilient async testing utilities
-- Comprehensive error simulation
+- **Testing Tools**: Vitest, React Testing Library, Storybook
+- **Mock Ecosystem**: Custom mock drivers for Firebase and Google Sheets
+- **Testing Patterns**: Extended async handling, comprehensive error scenarios
 
-### Future Improvements
+## Implementation Roadmap
 
-- Develop cross-component testing strategies
-- Create more advanced mock ecosystems
-- Implement automated coverage reporting
+### Phase 1: Foundation (COMPLETED)
+
+- Firebase infrastructure setup
+- Authentication integration
+- Basic collaboration contexts
+
+### Phase 2: Real-time Features (IN PROGRESS)
+
+- Presence system implementation (COMPLETED)
+- Active users display (COMPLETED)
+- Lock visualization implementation (VERIFICATION NEEDED)
+- Lock mechanism implementation (PENDING)
+- Cursor tracking (PLANNED)
+
+### Phase 3: Polish & Performance
+
+- Error handling improvements
+- Performance optimization
+- Edge case handling
+
+## Memory Bank Files Structure
+
+- **activeContext.md**: Current session context and immediate goals
+- **productContext.md**: Project overview and long-term strategy
+- **progress.md**: Detailed work completed and next steps
+- **decisionLog.md**: Key architectural and implementation decisions
+- **systemPatterns.md**: Reusable patterns and code snippets
