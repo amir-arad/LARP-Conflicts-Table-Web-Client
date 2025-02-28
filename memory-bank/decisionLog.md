@@ -52,3 +52,23 @@
 6. Review all documentation for accuracy, clarity, and completeness
 
 **Confirmation:** Documentation reorganization completed with all planned files created and cross-referenced.
+
+## 2025-02-28 - Create Integration Testing Documentation
+
+**Context:** Need to document the integration testing strategy and available tests for the application.
+
+**Decision:** Create a new file `docs/testing/integration-testing.md` to summarize the testing strategy, available tests, and how to run them.
+
+**Rationale:**
+
+- Provides a central location for information about integration testing
+- Helps developers understand the testing approach and how to contribute
+- Improves the discoverability of testing-related information
+
+**Implementation:**
+
+1. Analyze the existing integration tests in `src/test/integration/`
+2. Analyze the Storybook stories in `src/test/storybook/`
+3. Create a new file `docs/testing/integration-testing.md` with a summary of the testing strategy and available tests
+
+**Confirmation:** Integration testing documentation created in `docs/testing/integration-testing.md`.

@@ -4,6 +4,8 @@
 
 Welcome to the documentation for the LARP Conflicts Table Web Client. This comprehensive guide provides insights into the project's architecture, features, testing strategies, and backend integrations.
 
+For information about how we structure and maintain our documentation, see the [Documentation Strategy](documentation-strategy.md).
+
 ## Documentation Structure
 
 ### [Product](/product)
@@ -31,6 +33,11 @@ Welcome to the documentation for the LARP Conflicts Table Web Client. This compr
 - [Firebase Integration](architecture/firebase-integration.md)
 - [Google Sheets Integration](architecture/google-sheets-integration.md)
 
+### [Testing](/testing)
+
+- [Integration Testing](testing/integration-testing.md) - Integration testing strategy and available tests
+- [OAuth Testing](testing/google-oauth-testing.md) - Instructions for obtaining test tokens
+
 ### [Backend Integrations](/backends)
 
 - [Firebase](backends/firebase/setup.md) - Firebase setup and configuration
@@ -51,17 +58,6 @@ Welcome to the documentation for the LARP Conflicts Table Web Client. This compr
 - [Roles](features/roles/)
   - [Implementation Guide](features/roles/test-implementation-guide.md)
   - [Test Plan](features/roles/test-plan.md)
-
-## Current Development Status
-
-### Implemented Features
-
-- ✅ Firebase Infrastructure
-- ✅ Authentication Flow
-- ✅ Presence System
-- ✅ Lock Mechanism
-- ✅ Real-time Collaboration
-- ✅ Internationalization (English and Hebrew)
 
 ### Testing Strategy
 

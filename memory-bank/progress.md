@@ -36,6 +36,8 @@
   - Created integration documentation files (Firebase, Google Sheets)
   - Added cross-references between all documentation files
   - Reviewed all documentation for accuracy, clarity, and completeness
+- Created `docs/testing/google-oauth-testing.md` with instructions for obtaining Google access tokens for testing
+- Created `docs/testing/integration-testing.md` summarizing the integration testing strategy and available tests
 
 ## Work in Progress
 
