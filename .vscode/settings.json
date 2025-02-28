@@ -41,7 +41,6 @@
   ],
   "eslint.run": "onType",
   "eslint.workingDirectories": [{ "mode": "auto" }],
-  "eslint.alwaysShowStatus": true,
   "eslint.format.enable": true,
   "eslint.lintTask.enable": true,
   "typescript.tsdk": "node_modules/typescript/lib",
