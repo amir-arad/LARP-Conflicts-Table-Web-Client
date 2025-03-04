@@ -10,6 +10,12 @@ This directory contains architectural documentation for the LARP Conflicts Table
 - [Components](components.md) - Component architecture and interactions
 - [Patterns](patterns.md) - Implementation patterns and conventions
 
+### Architectural Principles and Patterns
+
+- [Architectural Patterns](patterns/architectural-patterns.md) - Core architectural patterns
+- [Development Methodology](patterns/development-methodology.md) - Development principles and practices
+- [Testing Strategy](patterns/testing-strategy.md) - Testing principles and approaches
+
 ### Component Documentation
 
 - [ConflictsTableTool](components/conflicts-table-tool.md) - Main application component

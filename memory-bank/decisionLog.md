@@ -175,3 +175,38 @@
 6. Establish a plan for continuous improvement and maintenance
 
 **Confirmation:** RAG system strategy document created in `docs/plans/rag-system/rag-system-strategy.md`. The strategy provides a comprehensive approach to implementing a RAG system as an MCP API for software development AI agents, leveraging the generated documentation from the codebase.
+
+## 2025-03-04 - System Patterns Update for Modern Architectural Principles
+
+**Context:** The project needed to update its system patterns to incorporate modern architectural principles including Hexagonal Architecture, Lean Software Development, Technical Debt Management, TDD with in-memory implementations, Fakes Instead of Mocks, and Contract Tests.
+
+**Decision:** Create three focused, practical documentation files that provide actionable implementation guidelines rather than theoretical concepts:
+
+1. Architectural Patterns
+2. Development Methodology
+3. Testing Strategy
+
+**Rationale:**
+
+- Focused documentation is more useful as a reference during development
+- Practical implementation guidelines are more valuable than theoretical concepts
+- Separating concerns into three documents makes the information more accessible
+- Code examples demonstrate how to apply the principles in practice
+
+**Implementation:**
+
+1. Create three new documentation files:
+   - `docs/architecture/patterns/architectural-patterns.md` - Implementation guidelines for architectural patterns
+   - `docs/architecture/patterns/development-methodology.md` - Practical development principles
+   - `docs/architecture/patterns/testing-strategy.md` - Concrete testing approaches
+2. Update supporting documentation:
+   - Update `memory-bank/systemPatterns.md` with key implementation guidelines
+   - Update `docs/architecture/patterns/README.md` to reflect the practical focus
+   - Update `docs/architecture/README.md` to reference the new documents
+3. Ensure documentation focuses on:
+   - Concrete implementation steps
+   - Practical code examples
+   - Actionable checklists
+   - Specific techniques rather than general principles
+
+**Confirmation:** System patterns documentation updated with three new focused, practical guides that provide actionable implementation guidelines for modern architectural principles.

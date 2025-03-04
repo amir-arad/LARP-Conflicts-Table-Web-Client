@@ -2,6 +2,12 @@
 
 This document describes common code patterns and conventions used throughout the application.
 
+> **Note**: For detailed architectural principles and patterns, see:
+>
+> - [Architectural Patterns](patterns/architectural-patterns.md)
+> - [Development Methodology](patterns/development-methodology.md)
+> - [Testing Strategy](patterns/testing-strategy.md)
+
 ## Key Patterns
 
 - **Context API:** React Context is used extensively for managing global state and providing access to services (Firebase, Google Sheets, Authentication, Language).
