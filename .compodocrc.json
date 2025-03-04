@@ -1,0 +1,14 @@
+{
+  "tsconfig": "tsconfig.json",
+  "output": "generated-docs/components",
+  "disableSourceCode": false,
+  "disableCoverage": false,
+  "disablePrivate": true,
+  "disableProtected": false,
+  "disableInternal": true,
+  "disableLifeCycleHooks": false,
+  "disableRoutesGraph": false,
+  "disableGraph": false,
+  "language": "en-US",
+  "theme": "material"
+}

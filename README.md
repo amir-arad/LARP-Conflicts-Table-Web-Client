@@ -29,6 +29,49 @@ npm install
 - `npm run build-storybook` - Build Storybook for deployment
 - `npm run lint` - Run ESLint with auto-fix
 - `npm run format` - Format code with Prettier
+- `npm run docs` - Generate documentation
+- `npm run docs:generate` - Generate documentation without integration
+- `npm run docs:typedoc` - Generate TypeScript API documentation
+- `npm run docs:compodoc` - Generate component documentation
+- `npm run docs:plantuml` - Generate architectural diagrams
+- `npm run docs:coverage` - Generate code coverage reports
+
+## Documentation
+
+### Generated Documentation
+
+The project uses automated tools to generate comprehensive documentation from the source code:
+
+- **API Documentation:** Generated from TypeScript using TypeDoc
+- **Component Documentation:** Generated using Compodoc
+- **JavaScript Documentation:** Generated using JSDoc
+- **Architectural Diagrams:** Generated using PlantUML
+- **Code Coverage Reports:** Generated using Vitest
+
+To generate all documentation:
+
+```bash
+npm run docs
+```
+
+Then open `generated-docs/index.html` in your browser.
+
+For more information about the documentation generation process, see:
+
+- [Documentation Build Step](docs/documentation-build-step.md)
+- [Documentation Strategy](docs/documentation-strategy.md)
+
+### Manual Documentation
+
+The project's manual documentation is organized in the `docs` directory:
+
+```
+docs/
+├── product/         # Product documentation
+├── architecture/    # Architecture documentation
+├── testing/        # Testing documentation
+└── features/       # Feature documentation
+```
 
 ## Code Quality Tools
 
@@ -104,8 +147,15 @@ src/
 
 1. Ensure your code editor is configured to use ESLint and Prettier
 2. Write code following the project's style guide (enforced by ESLint/Prettier)
-3. Run tests before submitting changes
-4. Format your code before committing:
+3. Add JSDoc comments to your code for documentation generation
+4. Run tests before submitting changes
+5. Generate and review documentation:
+
+```bash
+npm run docs
+```
+
+6. Format your code before committing:
 
 ```bash
 npm run format && npm run lint

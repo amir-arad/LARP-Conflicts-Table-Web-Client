@@ -1,3 +1,55 @@
+## Architectural Principles and Patterns
+
+The project follows a set of architectural principles and patterns that guide development. These are documented in detail in:
+
+- [Architectural Patterns](../docs/architecture/patterns/architectural-patterns.md) - Implementation guidelines for architectural patterns
+- [Development Methodology](../docs/architecture/patterns/development-methodology.md) - Practical development principles and practices
+- [Testing Strategy](../docs/architecture/patterns/testing-strategy.md) - Concrete testing approaches and implementations
+
+### Key Implementation Guidelines
+
+#### Hexagonal Architecture
+
+- Separate domain logic from external adapters using interfaces (ports)
+- Use React Context API as dependency injection mechanism
+- Create in-memory implementations for testing
+
+#### Lean Development
+
+- Implement the simplest solution that meets requirements
+- Work in small, manageable increments
+- Test with real users and adjust based on feedback
+
+#### Technical Debt Management
+
+- Make small, non-breaking changes
+- Add tests before refactoring
+- Focus on high-impact areas
+
+#### Test-Driven Development
+
+- Start with in-memory implementations
+- Follow Red-Green-Refactor cycle
+- Test behavior, not implementation details
+
+#### Fakes vs. Mocks
+
+- Use fakes for complex behavior with state
+- Reserve mocks for simple interactions
+- Ensure fakes follow the same contract as real implementations
+
+#### Immediate Problem Solving
+
+- Focus on current requirements
+- Wait for patterns to emerge before abstracting
+- Refine solutions iteratively
+
+#### Refactoring Before Implementation
+
+- Restructure code to make changes easy
+- Create clear interfaces between components
+- Use parameter objects for flexible function signatures
+
 ## Extended Testing Methodology for Role Management
 
 ### Core Testing Patterns
