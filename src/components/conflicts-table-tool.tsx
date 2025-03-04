@@ -13,10 +13,44 @@ import { useFlags } from '../hooks/useFlags';
 import { usePresence } from '../hooks/usePresence';
 import { useTranslations } from '../hooks/useTranslations';
 
+/**
+ * Props for the ConflictsTableTool component
+ *
+ * @interface ConflictsTableToolProps
+ * @property {string} sheetId - The ID of the Google Sheet containing the conflicts data
+ */
 interface ConflictsTableToolProps {
   sheetId: string;
 }
 
+/**
+ * ConflictsTableTool Component
+ *
+ * @component
+ * @description A tool for managing LARP character conflicts and motivations in a collaborative environment.
+ * This component displays a table of conflicts (rows) and roles (columns), allowing users to edit
+ * motivations for each conflict-role pair. It supports real-time collaboration with presence indicators
+ * and lock mechanisms to prevent concurrent edits.
+ *
+ * @param {ConflictsTableToolProps} props - Component props
+ * @param {string} props.sheetId - The ID of the Google Sheet containing the conflicts data
+ *
+ * @example
+ * ```tsx
+ * <ConflictsTableTool sheetId="1234567890abcdef" />
+ * ```
+ *
+ * @remarks
+ * This component is the main entry point for the conflicts table functionality.
+ * It integrates with Firebase for real-time collaboration and Google Sheets for data storage.
+ * Features include:
+ * - Real-time collaborative editing
+ * - User presence indicators
+ * - Cell locking to prevent concurrent edits
+ * - Filtering by roles and conflicts
+ * - Adding and removing roles and conflicts
+ * - Editing motivations
+ */
 const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
   const { isReady } = useAuth();
   const { registerPresence, unregisterPresence, locks, presence } =
@@ -47,12 +81,18 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     updateRoleName,
   } = useConflictsTable();
 
+  /**
+   * Load data from the Google Sheet when the component mounts or the sheetId changes
+   */
   useEffect(() => {
     if (sheetId) {
       loadData();
     }
   }, [sheetId, loadData]);
 
+  /**
+   * Register and unregister presence when the component mounts/unmounts or the activeCell changes
+   */
   useEffect(() => {
     if (isReady) {
       registerPresence({ activeCell });
@@ -60,11 +100,17 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     }
   }, [isReady, activeCell, registerPresence, unregisterPresence]);
 
+  /**
+   * Handle adding a new conflict
+   */
   const handleAddConflict = useCallback(
     () => addConflict(t('table.newConflict')),
     [addConflict, t]
   );
 
+  /**
+   * Handle adding a new role
+   */
   const handleAddRole = useCallback(
     () => addRole(t('table.newRole')),
     [addRole, t]
@@ -74,10 +120,16 @@ const ConflictsTableTool = ({ sheetId }: ConflictsTableToolProps) => {
     return <div>{t('app.loading')}</div>;
   }
 
+  /**
+   * Filter roles based on the selected role filters
+   */
   const filteredRoles = roles.filter(
     role => roleFilters.length === 0 || roleFilters.includes(role.cellRef)
   );
 
+  /**
+   * Filter conflicts based on the selected conflict filters
+   */
   const filteredConflicts = conflicts.filter(
     conflict =>
       conflictFilters.length === 0 || conflictFilters.includes(conflict.cellRef)

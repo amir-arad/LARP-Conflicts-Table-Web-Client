@@ -1,0 +1,14 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "generated-docs/api",
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeExternals": true,
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "categoryOrder": ["Contexts", "Components", "Hooks", "Utilities", "*"],
+  "readme": "none",
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "default"
+}

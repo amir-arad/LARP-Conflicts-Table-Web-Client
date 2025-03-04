@@ -24,6 +24,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       globals: true,
       coverage: {
         provider: 'v8',
+        reportsDirectory: 'generated-docs/coverage',
         reporter: ['text', 'json', 'html'],
         include: ['src/**/*.{ts,tsx}'],
         exclude: [

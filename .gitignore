@@ -129,5 +129,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 .vscode/chrome-debug-profile/*
-
+.genaiscript
 nul
+docusaurus/*
+generated-docs/*

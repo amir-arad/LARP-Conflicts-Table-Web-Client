@@ -8,33 +8,80 @@ import { useGoogleSheets } from '../contexts/GoogleSheetsContext';
 //   sheetId: string;
 // }
 
+/**
+ * Cell identifier string (e.g., "A1", "B2")
+ */
 export type CellId = string;
+
+/**
+ * Base interface for all cell types in the conflicts table
+ */
 interface CellNode {
+  /** Previous value (for tracking changes) */
   _oldVal?: string;
+  /** Type of cell */
   type: 'role' | 'conflict' | 'motivation';
+  /** Cell content */
   value: string;
+  /** Row index (0-based) */
   rowIndex: number;
+  /** Column index (0-based) */
   colIndex: number;
+  /** Cell reference (e.g., "A1") */
   cellRef: CellId;
 }
+
+/**
+ * Role data structure
+ */
 type RoleData = CellNode & {
   type: 'role';
+  /** Motivations for this role across all conflicts */
   motivations: Motivations;
 };
+
+/**
+ * Conflict data structure
+ */
 type ConflictData = CellNode & {
   type: 'conflict';
+  /** Motivations for this conflict across all roles */
   motivations: Motivations;
 };
+
+/**
+ * Motivation data structure
+ */
 type MotivationData = CellNode & {
   type: 'motivation';
+  /** Reference to the role this motivation belongs to */
   role: CellId;
+  /** Reference to the conflict this motivation belongs to */
   conflict: CellId;
 };
+
+/**
+ * Map of cell IDs to motivation data
+ */
 type Motivations = Record<CellId, MotivationData>;
 
+/**
+ * Convert row and column indices to a cell reference (e.g., "A1")
+ *
+ * @param rowIndex - Row index (0-based)
+ * @param colIndex - Column index (0-based)
+ * @returns Cell reference (e.g., "A1")
+ */
 const getCellRef = (rowIndex: number, colIndex: number): string => {
   return `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`;
 };
+
+/**
+ * Get a range of cells (e.g., "Sheet1!A1:B2")
+ *
+ * @param cells - Cells to include in the range
+ * @returns Range string (e.g., "Sheet1!A1:B2")
+ */
 const getCellRange = (...cells: CellNode[]): string => {
   const colIndexes = new Set(cells.map(cell => cell.colIndex));
   const rowIndexes = new Set(cells.map(cell => cell.rowIndex));
@@ -49,12 +96,57 @@ const getCellRange = (...cells: CellNode[]): string => {
 };
 
 export type ConflictsTable = ReturnType<typeof useConflictsTable>;
+
+/**
+ * Hook for managing conflicts table data and operations
+ *
+ * @hook
+ * @description Provides functionality for loading, updating, and manipulating conflicts table data
+ *
+ * @returns {Object} Conflicts table state and operations
+ * @returns {ConflictData[]} conflicts - Array of conflict objects
+ * @returns {RoleData[]} roles - Array of role objects
+ * @returns {string | null} error - Error message, if any
+ * @returns {boolean} isLoading - Whether data is currently being loaded
+ * @returns {Function} loadData - Function to load data from Google Sheets
+ * @returns {Function} addConflict - Function to add a new conflict
+ * @returns {Function} addRole - Function to add a new role
+ * @returns {Function} removeConflict - Function to remove a conflict
+ * @returns {Function} removeRole - Function to remove a role
+ * @returns {Function} updateMotivation - Function to update a motivation
+ * @returns {Function} updateFullSheet - Function to update the entire sheet
+ * @returns {Function} updateConflictName - Function to update a conflict name
+ * @returns {Function} updateRoleName - Function to update a role name
+ *
+ * @example
+ * ```tsx
+ * const {
+ *   conflicts,
+ *   roles,
+ *   error,
+ *   isLoading,
+ *   loadData,
+ *   addConflict,
+ *   addRole,
+ *   removeConflict,
+ *   removeRole,
+ *   updateMotivation,
+ *   updateConflictName,
+ *   updateRoleName
+ * } = useConflictsTable();
+ * ```
+ */
 export function useConflictsTable() {
   const [conflicts, setConflicts] = useState<ReadonlyDeep<ConflictData[]>>([]);
   const [roles, setRoles] = useState<ReadonlyDeep<RoleData[]>>([]);
   const [apiError, setApiError] = useState<string | null>(null);
   const { load, update, clear, error, isLoading } = useGoogleSheets();
 
+  /**
+   * Load conflicts table data from Google Sheets
+   *
+   * @returns {Promise<void>}
+   */
   const loadData = useCallback(async () => {
     try {
       const response = await load();
@@ -119,6 +211,11 @@ export function useConflictsTable() {
     }
   }, [load]);
 
+  /**
+   * Update the entire sheet with current data
+   *
+   * @returns {Promise<void>}
+   */
   const updateFullSheet = useCallback(async () => {
     try {
       const values = [
@@ -135,6 +232,12 @@ export function useConflictsTable() {
     }
   }, [update, roles, conflicts]);
 
+  /**
+   * Add a new conflict to the table
+   *
+   * @param {string} newConflict - Name of the new conflict
+   * @returns {Promise<void>}
+   */
   const addConflict = useCallback(
     async (newConflict: string) => {
       try {
@@ -163,6 +266,12 @@ export function useConflictsTable() {
     [update, roles.length, conflicts.length]
   );
 
+  /**
+   * Add a new role to the table
+   *
+   * @param {string} newRole - Name of the new role
+   * @returns {Promise<void>}
+   */
   const addRole = useCallback(
     async (newRole: string) => {
       try {
@@ -196,6 +305,12 @@ export function useConflictsTable() {
     [update, roles.length, conflicts.length]
   );
 
+  /**
+   * Remove a conflict from the table
+   *
+   * @param {CellId} cellRef - Cell reference of the conflict to remove
+   * @returns {Promise<void>}
+   */
   const removeConflict = useCallback(
     async (cellRef: CellId) => {
       try {
@@ -244,6 +359,12 @@ export function useConflictsTable() {
     [clear, conflicts]
   );
 
+  /**
+   * Remove a role from the table
+   *
+   * @param {CellId} cellRef - Cell reference of the role to remove
+   * @returns {Promise<void>}
+   */
   const removeRole = useCallback(
     async (cellRef: CellId) => {
       try {
@@ -289,6 +410,14 @@ export function useConflictsTable() {
     [clear, roles]
   );
 
+  /**
+   * Update a motivation in the table
+   *
+   * @param {CellId} conflictId - Cell reference of the conflict
+   * @param {CellId} roleId - Cell reference of the role
+   * @param {string | null} valueArg - New motivation value
+   * @returns {Promise<void>}
+   */
   const updateMotivation = useCallback(
     async (conflictId: CellId, roleId: CellId, valueArg: string | null) => {
       try {
@@ -364,6 +493,13 @@ export function useConflictsTable() {
     [update, roles, conflicts]
   );
 
+  /**
+   * Update a conflict name
+   *
+   * @param {CellId} cellRef - Cell reference of the conflict
+   * @param {string | null} newName - New conflict name
+   * @returns {Promise<void>}
+   */
   const updateConflictName = useCallback(
     async (cellRef: CellId, newName: string | null) => {
       try {
@@ -387,6 +523,13 @@ export function useConflictsTable() {
     [update, conflicts]
   );
 
+  /**
+   * Update a role name
+   *
+   * @param {CellId} cellRef - Cell reference of the role
+   * @param {string | null} newName - New role name
+   * @returns {Promise<void>}
+   */
   const updateRoleName = useCallback(
     async (cellRef: CellId, newName: string | null) => {
       try {
@@ -410,10 +553,17 @@ export function useConflictsTable() {
     [update, roles]
   );
 
+  /**
+   * Filter out conflicts with empty values and no motivations
+   */
   const filteredConflicts = useMemo(
     () => conflicts.filter(c => c.value || Object.keys(c.motivations).length),
     [conflicts]
   );
+
+  /**
+   * Filter out roles with empty values and no motivations
+   */
   const filteredRoles = useMemo(
     () => roles.filter(r => r.value || Object.keys(r.motivations).length),
     [roles]
