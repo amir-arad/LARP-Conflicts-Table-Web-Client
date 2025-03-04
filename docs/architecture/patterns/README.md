@@ -7,7 +7,6 @@ This directory contains documentation about design patterns used in the project,
 - [Architectural Patterns](architectural-patterns.md) - Implementation guidelines for architectural patterns
 - [Development Methodology](development-methodology.md) - Practical development principles and practices
 - [Testing Strategy](testing-strategy.md) - Concrete testing approaches and implementations
-- [Test Patterns Catalog](test-patterns-catalog.md) - Comprehensive catalog of testing patterns
 
 ## Architectural Patterns
 

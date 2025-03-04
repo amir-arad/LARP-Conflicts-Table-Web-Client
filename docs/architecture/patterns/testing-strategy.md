@@ -153,6 +153,8 @@ if (process.env.CI) {
 
 ## UI Testing with Storybook
 
+### Component Testing
+
 - **Create Component Stories**
 
   - Document all component states and variations
@@ -202,7 +204,178 @@ export const EditableCell: StoryObj<typeof TableCell> = {
 };
 ```
 
+### System Integration testing
+
+System Integration testing verifies that the entire system (excluding I/O ports) work together correctly.
+
+- **Create System Integration Stories in Storybook**
+
+  - Build stories that combine multiple components working together
+  - Use story decorators to provide necessary context providers
+  - Implement realistic data flows between components
+  - Include edge cases and error states
+
+- **Implement Play Functions for Interaction Testing**
+
+  - Use Storybook's play function to simulate user interactions
+  - Structure tests with clear steps for better debugging
+  - Verify component interactions through assertions
+  - Test complete user flows across component boundaries
+
+- **Connect Stories to Automated Tests**
+
+  - Use a test adapter to run story play functions in test suites
+  - Maintain a single source of truth for both visual testing and automation
+  - Enable debugging of integration tests through corresponding stories
+  - Ensure tests can run in CI/CD pipeline
+
+```typescript
+// System integration story with play function
+export const AuthenticationFlow: Story = {
+  decorators: [
+    Story => (
+      <TestContextProvider>
+        <Story />
+      </TestContextProvider>
+    ),
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+
+    // Step 1: Initial state verification
+    await step('Initial state', async () => {
+      const loginButton = canvas.getByTestId('login-button');
+      await expect(loginButton).toBeInTheDocument();
+    });
+
+    // Step 2: Interaction across components
+    await step('Login', async () => {
+      const loginButton = canvas.getByTestId('login-button');
+      await userEvent.click(loginButton);
+
+      // Verify state changes across components
+      await expect(
+        canvas.getByTestId('authenticating-indicator')
+      ).toBeInTheDocument();
+    });
+
+    // Step 3: Verify final state
+    await step('Authenticated', async () => {
+      // Wait for authenticated state
+      await expect(
+        await canvas.findByRole('table', {}, { timeout: 2000 })
+      ).toBeInTheDocument();
+
+      // Verify other UI elements
+      await expect(
+        canvas.getByRole('button', { name: /add conflict/i })
+      ).toBeInTheDocument();
+    });
+  },
+};
+
+// Test adapter to run story in test suite
+test('completes authentication flow successfully', async () => {
+  const { runPlayFunction } = renderStory('AuthenticationFlow');
+  await runPlayFunction();
+});
+```
+
+### Acceptance Testing
+
+Acceptance testing validates that the system meets business requirements from an end-user perspective ( = that a feature works).
+
+- **Design Stories for Complete User Journeys**
+
+  - Create Storybook stories that represent end-to-end user flows
+  - Structure stories to demonstrate business requirements in action
+  - Include all relevant UI components needed for the feature
+  - Document acceptance criteria directly in story descriptions
+
+- **Implement Interactive Demonstrations**
+
+  - Use decorators to provide realistic application state
+  - Add step indicators to clarify the flow being tested
+  - Implement play functions that validate acceptance criteria
+  - Create visual indicators for important state transitions
+
+- **Connect to Automated Testing**
+
+  - Run story play functions in automated test suites
+  - Verify business requirements are met through assertions
+  - Structure tests to mirror user behavior and expectations
+  - Provide clear failure messages tied to business requirements
+
+```typescript
+// Acceptance test story for a complete feature
+export const CompleteMotivationEditFlow: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          # Motivation Edit Flow
+
+          ## Acceptance Criteria:
+          1. User can select a motivation cell
+          2. User can edit the motivation text
+          3. Changes are saved to the backend
+          4. Other users see the changes in real-time
+          5. Conflicts are prevented through locking
+        `,
+      },
+    },
+  },
+  decorators: [
+    Story => (
+      <FeatureContextProvider initialState={featureFixtures.basic}>
+        <Story />
+      </FeatureContextProvider>
+    ),
+  ],
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+
+    // Step 1: Select a motivation cell
+    await step('Select motivation cell', async () => {
+      const cell = canvas.getByTestId('motivation-cell-A1');
+      await userEvent.click(cell);
+      await expect(canvas.getByTestId('cell-editor')).toBeInTheDocument();
+    });
+
+    // Step 2: Edit the motivation
+    await step('Edit motivation', async () => {
+      const editor = canvas.getByTestId('cell-editor');
+      await userEvent.clear(editor);
+      await userEvent.type(editor, 'New motivation text');
+      await userEvent.keyboard('{Enter}');
+    });
+
+    // Step 3: Verify changes are saved
+    await step('Verify changes saved', async () => {
+      // Check cell shows new value
+      const cell = canvas.getByTestId('motivation-cell-A1');
+      await expect(cell).toHaveTextContent('New motivation text');
+
+      // Check save indicator appears
+      await expect(canvas.getByTestId('save-indicator')).toBeInTheDocument();
+    });
+  },
+};
+
+// Automated test that runs the story
+test('motivation edit flow meets acceptance criteria', async () => {
+  const { runPlayFunction } = renderStory('CompleteMotivationEditFlow');
+  await runPlayFunction();
+});
+```
+
 ## Testing Best Practices
+
+- **Always use Fake Port Adapters**
+
+  - Employ Hexagonal Architecture to create a separation between the application core and external dependencies.
+  - Replace IO-bound adapters (anything injected by Context API) with memory-bound doubles to enable fast acceptance testing.
+  - Use contract tests to verify that both the fake and real implementations conform to the same interface.
 
 - **Test Behavior, Not Implementation**
 
@@ -233,8 +406,9 @@ When implementing tests:
 
 1. ✅ Write tests before implementation (TDD)
 2. ✅ Use fakes instead of mocks for complex behavior
-3. ✅ Create contract tests for interfaces with multiple implementations
-4. ✅ Test components in isolation with Storybook
-5. ✅ Focus on behavior, not implementation details
-6. ✅ Make tests deterministic and reliable
-7. ✅ Balance coverage with development speed
+3. ✅ Always use Fake Port Adapters
+4. ✅ Create contract tests for interfaces with multiple implementations
+5. ✅ Test components in isolation with Storybook
+6. ✅ Focus on behavior, not implementation details
+7. ✅ Make tests deterministic and reliable
+8. ✅ Balance coverage with development speed

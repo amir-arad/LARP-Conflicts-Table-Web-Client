@@ -32,4 +32,3 @@ This directory contains architectural documentation for the LARP Conflicts Table
 ### Legacy Documentation
 
 - [Project Overview](overview/project-architecture-overview.md) - Original project architecture overview
-- [Test Patterns](patterns/test-patterns-catalog.md) - Test patterns catalog
